@@ -37,8 +37,14 @@ defmodule Sonx.MixProject do
 
   defp docs do
     [
-      main: "Sonx",
-      extras: ["README.md"]
+      main: "readme",
+      extras: ["README.md"],
+      source_url: "https://github.com/ftes/sonx",
+      groups_for_modules: [
+        "Public API": [Sonx, Sonx.Chord, Sonx.Key],
+        "Chord Sheet IR": [~r/Sonx\.ChordSheet/],
+        Internals: [~r/Sonx\./]
+      ]
     ]
   end
 
@@ -66,7 +72,8 @@ defmodule Sonx.MixProject do
       {:typedstruct, "~> 0.5"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:quokka, "~> 2.12", only: [:dev, :test], runtime: false}
+      {:quokka, "~> 2.12", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.35", only: :dev, runtime: false}
     ]
   end
 end

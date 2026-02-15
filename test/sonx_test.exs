@@ -4,6 +4,8 @@ defmodule SonxTest do
   alias Sonx.ChordSheet.Metadata
   alias Sonx.ChordSheet.Song
 
+  doctest Sonx
+
   describe "parse/3" do
     test "parses ChordPro format" do
       {:ok, song} = Sonx.parse(:chord_pro, "{title: My Song}\n[Am]Hello")

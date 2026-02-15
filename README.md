@@ -1,21 +1,99 @@
-# Chordsheetx
+# Sonx
 
-**TODO: Add description**
+Elixir library for parsing and formatting chord sheets.
+An Elixir rewrite of [ChordSheetJS](https://github.com/martijnversluis/ChordSheetJS) (v14).
+
+## Supported formats
+
+**Input (parsers):**
+
+| Format | Atom | Example |
+|--------|------|---------|
+| [ChordPro](https://www.chordpro.org/) | `:chord_pro` | `{title: My Song}\n[Am]Hello` |
+| Chords over words | `:chords_over_words` | `Am\nHello` |
+| Ultimate Guitar | `:ultimate_guitar` | `[Verse]\nAm\nHello` |
+
+**Output (formatters):**
+
+| Format | Atom |
+|--------|------|
+| Plain text | `:text` |
+| ChordPro | `:chord_pro` |
+| Chords over words | `:chords_over_words` |
+| HTML (div-based) | `:html_div` |
+| HTML (table-based) | `:html_table` |
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `chordsheetx` to your list of dependencies in `mix.exs`:
+Add `sonx` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:chordsheetx, "~> 0.1.0"}
+    {:sonx, "~> 0.1.0"}
   ]
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/chordsheetx>.
+## Quick start
 
+Parse a ChordPro string, inspect metadata, and format as plain text:
+
+```elixir
+{:ok, song} = Sonx.parse(:chord_pro, "{title: My Song}\n{key: C}\n[Am]Hello [G]world")
+
+Sonx.title(song)
+# => "My Song"
+
+Sonx.get_chords(song)
+# => ["Am", "G"]
+
+Sonx.format(:text, song)
+# => "My Song\n\nAm    G\nHello world"
+```
+
+### Transposing and changing key
+
+```elixir
+transposed = Sonx.transpose(song, 3)
+Sonx.get_chords(transposed)
+# => ["Cm", "A#"]
+
+changed = Sonx.change_key(song, "G")
+Sonx.get_chords(changed)
+# => ["Em", "D"]
+```
+
+### Switching accidentals
+
+```elixir
+{:ok, song} = Sonx.parse(:chord_pro, "[C#]Hello")
+flat = Sonx.use_accidental(song, :flat)
+Sonx.get_chords(flat)
+# => ["Db"]
+```
+
+### Serialization
+
+Songs can be serialized to JSON and back:
+
+```elixir
+json = Sonx.to_json(song)
+{:ok, restored} = Sonx.from_json(json)
+```
+
+## Architecture
+
+```
+Input String → Parser → %Song{} → Formatter → Output String
+```
+
+All parsers produce a `Sonx.ChordSheet.Song` struct (the intermediate representation).
+All formatters consume one. This makes it easy to mix and match any input format
+with any output format, and to apply transformations (transpose, key change) in between.
+
+See the `Sonx` module documentation for the full API reference.
+
+## License
+
+MIT

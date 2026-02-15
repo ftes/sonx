@@ -2,35 +2,50 @@ defmodule Sonx do
   @moduledoc """
   Elixir library for parsing and formatting chord sheets.
 
-  Supports multiple input formats:
+  Sonx is an Elixir rewrite of [ChordSheetJS](https://github.com/martijnversluis/ChordSheetJS),
+  providing parsers and formatters for multiple chord sheet formats.
+
+  ## Supported formats
+
+  **Input (parsers):**
   - `:chord_pro` — ChordPro format with inline chords `[Am]lyrics` and directives `{title: ...}`
   - `:chords_over_words` — Plain text with chords on one line, lyrics below
   - `:ultimate_guitar` — Ultimate Guitar format with `[Verse]`/`[Chorus]` section markers
 
-  And multiple output formats:
+  **Output (formatters):**
   - `:text` — Plain text with chords aligned above lyrics
   - `:chord_pro` — ChordPro format
   - `:chords_over_words` — Chords-over-words with metadata header
   - `:html_div` — HTML using flexbox `<div>` elements
   - `:html_table` — HTML using `<table>` elements
 
-  ## Quick Start
+  ## Quick start
 
-      # Parse a ChordPro string
-      {:ok, song} = Sonx.parse(:chord_pro, "{title: My Song}\\n[Am]Hello [G]world")
+      iex> {:ok, song} = Sonx.parse(:chord_pro, "{title: My Song}\\n{key: C}\\n[Am]Hello [G]world")
+      iex> Sonx.title(song)
+      "My Song"
+      iex> Sonx.get_chords(song)
+      ["Am", "G"]
+      iex> Sonx.format(:text, song)
+      "My Song\\n\\nAm    G\\nHello world"
 
-      # Format as plain text
-      text = Sonx.format(:text, song)
+  ### Transposing and changing key
 
-      # Transpose up 3 semitones
-      transposed = Sonx.transpose(song, 3)
+      iex> {:ok, song} = Sonx.parse(:chord_pro, "{key: C}\\n[Am]Hello [G]world")
+      iex> transposed = Sonx.transpose(song, 3)
+      iex> Sonx.get_chords(transposed)
+      ["Cm", "A#"]
+      iex> changed = Sonx.change_key(song, "G")
+      iex> Sonx.get_chords(changed)
+      ["Em", "D"]
 
-      # Change key
-      in_g = Sonx.change_key(song, "G")
+  ### Serialization
 
-      # Serialize to JSON
-      json = Sonx.to_json(song)
-      {:ok, restored} = Sonx.from_json(json)
+      iex> {:ok, song} = Sonx.parse(:chord_pro, "{title: Test}\\n[Am]Hello")
+      iex> json = Sonx.to_json(song)
+      iex> {:ok, restored} = Sonx.from_json(json)
+      iex> Sonx.title(restored)
+      "Test"
   """
 
   alias Sonx.ChordSheet.Metadata
@@ -64,9 +79,17 @@ defmodule Sonx do
 
   ## Examples
 
-      {:ok, song} = Sonx.parse(:chord_pro, "{title: My Song}\\n[Am]Hello")
-      {:ok, song} = Sonx.parse(:chords_over_words, "Am\\nHello")
-      {:ok, song} = Sonx.parse(:ultimate_guitar, "[Verse]\\nAm\\nHello")
+      iex> {:ok, song} = Sonx.parse(:chord_pro, "{title: My Song}\\n[Am]Hello")
+      iex> Sonx.title(song)
+      "My Song"
+
+      iex> {:ok, song} = Sonx.parse(:chords_over_words, "Am\\nHello")
+      iex> Sonx.get_chords(song)
+      ["Am"]
+
+      iex> {:ok, song} = Sonx.parse(:ultimate_guitar, "[Verse]\\nAm\\nHello")
+      iex> Sonx.get_chords(song)
+      ["Am"]
   """
   @spec parse(parser_format(), String.t(), keyword()) :: {:ok, Song.t()} | {:error, term()}
   def parse(format, input, opts \\ [])
@@ -100,8 +123,13 @@ defmodule Sonx do
 
   ## Examples
 
-      text = Sonx.format(:text, song)
-      html = Sonx.format(:html_div, song, css_classes: %{chord: "my-chord"})
+      iex> {:ok, song} = Sonx.parse(:chord_pro, "{title: Test}\\n[Am]Hello [G]world")
+      iex> Sonx.format(:text, song)
+      "Test\\n\\nAm    G\\nHello world"
+
+      iex> {:ok, song} = Sonx.parse(:chord_pro, "[Am]Hello")
+      iex> Sonx.format(:chord_pro, song)
+      "[Am]Hello"
   """
   @spec format(formatter_format(), Song.t(), keyword()) :: String.t()
   def format(format, song, opts \\ [])
@@ -119,8 +147,12 @@ defmodule Sonx do
 
   ## Examples
 
-      transposed = Sonx.transpose(song, 3)   # up 3 semitones
-      transposed = Sonx.transpose(song, -2)   # down 2 semitones
+      iex> {:ok, song} = Sonx.parse(:chord_pro, "{key: C}\\n[C]Hello [G]world")
+      iex> transposed = Sonx.transpose(song, 2)
+      iex> Sonx.key(transposed)
+      "D"
+      iex> Sonx.get_chords(transposed)
+      ["D", "A"]
   """
   @spec transpose(Song.t(), integer(), keyword()) :: Song.t()
   defdelegate transpose(song, delta, opts \\ []), to: Song
@@ -129,12 +161,28 @@ defmodule Sonx do
   Changes the song key to the target key, transposing all chords accordingly.
 
   Requires the song to have a key directive set.
+
+  ## Examples
+
+      iex> {:ok, song} = Sonx.parse(:chord_pro, "{key: C}\\n[C]Hello [Am]world")
+      iex> changed = Sonx.change_key(song, "G")
+      iex> Sonx.key(changed)
+      "G"
+      iex> Sonx.get_chords(changed)
+      ["G", "Em"]
   """
   @spec change_key(Song.t(), String.t() | Key.t()) :: Song.t()
   defdelegate change_key(song, new_key), to: Song
 
   @doc """
   Switches all chords in the song to use the given accidental (`:sharp` or `:flat`).
+
+  ## Examples
+
+      iex> {:ok, song} = Sonx.parse(:chord_pro, "[C#]Hello")
+      iex> flat = Sonx.use_accidental(song, :flat)
+      iex> Sonx.get_chords(flat)
+      ["Db"]
   """
   @spec use_accidental(Song.t(), Key.accidental()) :: Song.t()
   defdelegate use_accidental(song, accidental), to: Song
