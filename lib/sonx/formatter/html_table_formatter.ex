@@ -36,6 +36,24 @@ defmodule Sonx.Formatter.HtmlTableFormatter do
 
   alias Sonx.Formatter.Html
 
+  @doc """
+  Returns default CSS for the HTML table output.
+  """
+  @spec css_string() :: String.t()
+  def css_string do
+    css = Html.default_css_classes()
+
+    Html.render_css([
+      {".#{css.title}", [{"font-size", "1.5em"}]},
+      {".#{css.subtitle}", [{"font-size", "1.1em"}]},
+      {".#{css.row}, .#{css.line}, .#{css.literal}", [{"border-spacing", "0"}, {"color", "inherit"}]},
+      {".#{css.annotation}, .#{css.chord}, .#{css.comment}, .#{css.literal_contents}, .#{css.label_wrapper}, .#{css.literal}, .#{css.lyrics}",
+       [{"padding", "3px 0"}]},
+      {".#{css.chord}:not(:last-child)", [{"padding-right", "10px"}]},
+      {".#{css.paragraph}", [{"margin-bottom", "1em"}]}
+    ])
+  end
+
   @impl true
   @spec format(Song.t(), keyword()) :: String.t()
   def format(%Song{} = song, opts \\ []) do

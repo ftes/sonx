@@ -1,7 +1,7 @@
 # Sonx Demo
 
 ```elixir
-Mix.install([{:sonx, "~> 0.1"}, {:kino, "~> 0.14"}])
+Mix.install([{:sonx, "~> 0.1.2"}, {:kino, "~> 0.14"}])
 
 default_input = """
 {title: Let It Be}
@@ -61,7 +61,13 @@ convert = fn chord_pro, output_format ->
 
       output_widget =
         if output_format in [:html_div, :html_table] do
-          Kino.HTML.new(output)
+          formatter =
+            if output_format == :html_div,
+              do: Sonx.Formatter.HtmlDivFormatter,
+              else: Sonx.Formatter.HtmlTableFormatter
+
+          css = "<style>\n#{formatter.css_string()}</style>"
+          Kino.HTML.new(css <> output)
         else
           Kino.Text.new(output, terminal: true)
         end

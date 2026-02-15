@@ -182,4 +182,15 @@ defmodule Sonx.Formatter.Html do
     |> String.replace(">", "&gt;")
     |> String.replace("\"", "&quot;")
   end
+
+  @doc false
+  @spec render_css([{String.t(), [{String.t(), String.t()}]}]) :: String.t()
+  def render_css(css_rules) do
+    css_rules
+    |> Enum.map_join("\n", fn {selector, declarations} ->
+      props = Enum.map_join(declarations, "\n", fn {prop, val} -> "  #{prop}: #{val};" end)
+      "#{selector} {\n#{props}\n}"
+    end)
+    |> Kernel.<>("\n")
+  end
 end

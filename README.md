@@ -3,7 +3,7 @@
 Elixir library for parsing and formatting chord sheets.
 An Elixir rewrite of [ChordSheetJS](https://github.com/martijnversluis/ChordSheetJS) (v14).
 
-[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fftes%2Fsonx%2Fblob%2Fmain%2Fnotebooks%2Fdemo.livemd)
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fftes%2Fsonx%2Fblob%2Fmain%2Fnotebooks%2Fdemo.livemd) | [Interactive demo](notebooks/demo.livemd)
 
 ## Supported formats
 
@@ -76,6 +76,21 @@ flat = Sonx.use_accidental(song, :flat)
 Sonx.get_chords(flat)
 # => ["Db"]
 ```
+
+### HTML formatting with CSS
+
+The HTML formatters provide default CSS via `css_string/1`:
+
+```elixir
+alias Sonx.Formatter.HtmlDivFormatter
+
+html = Sonx.format(:html_div, song)
+css = HtmlDivFormatter.css_string()
+
+"<style>#{css}</style>\n#{html}"
+```
+
+`HtmlTableFormatter.css_string/1` works the same way.
 
 ### Serialization
 

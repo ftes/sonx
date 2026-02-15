@@ -32,6 +32,22 @@ defmodule Sonx.Formatter.HtmlDivFormatter do
 
   alias Sonx.Formatter.Html
 
+  @doc """
+  Returns default CSS for the HTML div output.
+  """
+  @spec css_string() :: String.t()
+  def css_string do
+    css = Html.default_css_classes()
+
+    Html.render_css([
+      {".#{css.chord}:not(:last-child)", [{"padding-right", "10px"}]},
+      {".#{css.paragraph}", [{"margin-bottom", "1em"}]},
+      {".#{css.row}", [{"display", "flex"}]},
+      {".#{css.chord}:after", [{"content", "'\\200b'"}]},
+      {".#{css.lyrics}:after", [{"content", "'\\200b'"}]}
+    ])
+  end
+
   @impl true
   @spec format(Song.t(), keyword()) :: String.t()
   def format(%Song{} = song, opts \\ []) do
