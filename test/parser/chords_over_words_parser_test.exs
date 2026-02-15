@@ -205,7 +205,7 @@ defmodule Sonx.Parser.ChordsOverWordsParserTest do
   describe "fixture file" do
     test "parses simple.txt fixture" do
       fixture_path =
-        Path.join([__DIR__, "..", "support", "fixtures", "chords_over_words", "simple.txt"])
+        "test/support/fixtures/chords_over_words/simple.txt"
 
       input = File.read!(fixture_path)
 

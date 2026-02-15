@@ -117,10 +117,7 @@ defmodule Sonx.Formatter.UltimateGuitarFormatterTest do
 
   describe "roundtrip" do
     test "simple fixture roundtrips exactly" do
-      fixture_path =
-        Path.join([__DIR__, "..", "support", "fixtures", "ultimate_guitar", "simple.txt"])
-
-      input = File.read!(fixture_path)
+      input = File.read!("test/support/fixtures/ultimate_guitar/simple.txt")
       {:ok, song} = UltimateGuitarParser.parse(input)
       result = UltimateGuitarFormatter.format(song)
 
@@ -128,17 +125,7 @@ defmodule Sonx.Formatter.UltimateGuitarFormatterTest do
     end
 
     test "chordsheet fixture roundtrips exactly (modulo known normalizations)" do
-      fixture_path =
-        Path.join([
-          __DIR__,
-          "..",
-          "support",
-          "fixtures",
-          "ultimate_guitar",
-          "ultimate_guitar_chordsheet.txt"
-        ])
-
-      input = File.read!(fixture_path)
+      input = File.read!("test/support/fixtures/ultimate_guitar/ultimate_guitar_chordsheet.txt")
       {:ok, song} = UltimateGuitarParser.parse(input)
       result = UltimateGuitarFormatter.format(song)
 
@@ -155,17 +142,7 @@ defmodule Sonx.Formatter.UltimateGuitarFormatterTest do
     end
 
     test "double roundtrip produces identical output" do
-      fixture_path =
-        Path.join([
-          __DIR__,
-          "..",
-          "support",
-          "fixtures",
-          "ultimate_guitar",
-          "ultimate_guitar_chordsheet.txt"
-        ])
-
-      input = File.read!(fixture_path)
+      input = File.read!("test/support/fixtures/ultimate_guitar/ultimate_guitar_chordsheet.txt")
       {:ok, song1} = UltimateGuitarParser.parse(input)
       output1 = UltimateGuitarFormatter.format(song1)
 
@@ -176,17 +153,7 @@ defmodule Sonx.Formatter.UltimateGuitarFormatterTest do
     end
 
     test "roundtrip preserves chords" do
-      fixture_path =
-        Path.join([
-          __DIR__,
-          "..",
-          "support",
-          "fixtures",
-          "ultimate_guitar",
-          "ultimate_guitar_chordsheet.txt"
-        ])
-
-      input = File.read!(fixture_path)
+      input = File.read!("test/support/fixtures/ultimate_guitar/ultimate_guitar_chordsheet.txt")
       {:ok, original_song} = UltimateGuitarParser.parse(input)
       output = UltimateGuitarFormatter.format(original_song)
       {:ok, roundtripped_song} = UltimateGuitarParser.parse(output)
@@ -197,8 +164,7 @@ defmodule Sonx.Formatter.UltimateGuitarFormatterTest do
 
   describe "fixture" do
     test "formats simple.cho fixture" do
-      fixture_path = Path.join([__DIR__, "..", "support", "fixtures", "chord_pro", "simple.cho"])
-      input = File.read!(fixture_path)
+      input = File.read!("test/support/fixtures/chord_pro/simple.cho")
 
       {:ok, song} = ChordProParser.parse(input)
       result = UltimateGuitarFormatter.format(song)

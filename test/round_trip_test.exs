@@ -32,7 +32,7 @@ defmodule Sonx.RoundTripTest do
     end
 
     test "format is idempotent for simple.cho fixture" do
-      input = File.read!(Path.join(["test", "support", "fixtures", "chord_pro", "simple.cho"]))
+      input = File.read!("test/support/fixtures/chord_pro/simple.cho")
       output1 = input |> parse_cp!() |> ChordProFormatter.format()
       output2 = output1 |> parse_cp!() |> ChordProFormatter.format()
 

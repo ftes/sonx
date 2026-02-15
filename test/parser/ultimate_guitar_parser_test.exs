@@ -272,10 +272,7 @@ defmodule Sonx.Parser.UltimateGuitarParserTest do
 
   describe "fixture file" do
     test "parses simple.txt fixture" do
-      fixture_path =
-        Path.join([__DIR__, "..", "support", "fixtures", "ultimate_guitar", "simple.txt"])
-
-      input = File.read!(fixture_path)
+      input = File.read!("test/support/fixtures/ultimate_guitar/simple.txt")
 
       {:ok, song} = UltimateGuitarParser.parse(input)
 
@@ -293,18 +290,10 @@ defmodule Sonx.Parser.UltimateGuitarParserTest do
     end
 
     test "parses full fixture and formats as ChordPro" do
-      fixture_path = Path.join(__DIR__, "../support/fixtures/ultimate_guitar/ultimate_guitar_chordsheet.txt")
-
-      expected_path =
-        Path.join(
-          __DIR__,
-          "../support/fixtures/ultimate_guitar/ultimate_guitar_chordsheet_expected_chordpro_format.txt"
-        )
-
-      input = File.read!(fixture_path)
+      input = File.read!("test/support/fixtures/ultimate_guitar/ultimate_guitar_chordsheet.txt")
 
       expected =
-        expected_path
+        "test/support/fixtures/ultimate_guitar/ultimate_guitar_chordsheet_expected_chordpro_format.txt"
         |> File.read!()
         |> String.replace("\r\n", "\n")
         |> String.trim_trailing()

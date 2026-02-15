@@ -200,8 +200,7 @@ defmodule Sonx.Parser.ChordProParserTest do
 
   describe "fixture file" do
     test "parses simple.cho fixture" do
-      fixture_path = Path.join([__DIR__, "..", "support", "fixtures", "chord_pro", "simple.cho"])
-      input = File.read!(fixture_path)
+      input = File.read!("test/support/fixtures/chord_pro/simple.cho")
 
       {:ok, song} = ChordProParser.parse(input)
       meta = Song.metadata(song)
