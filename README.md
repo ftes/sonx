@@ -30,7 +30,7 @@ Add `sonx` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:sonx, "~> 0.1.0"}
+    {:sonx, "~> 0.1"}
   ]
 end
 ```

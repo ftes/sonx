@@ -1,0 +1,156 @@
+# Sonx Demo
+
+```elixir
+Mix.install([{:sonx, "~> 0.1"}, {:kino, "~> 0.14"}])
+
+default_input = """
+{title: Let It Be}
+{subtitle: Beatles}
+{artist: The Beatles}
+{key: C}
+
+{start_of_verse: label="Verse 1"}
+[C]When I find myself in [G]times of trouble
+[Am]Mother Mary [F]comes to me
+{end_of_verse}
+
+{start_of_chorus}
+[Am]Let it [G]be, let it [F]be, let it [C]be
+{end_of_chorus}
+"""
+```
+
+## Interactive converter
+
+Edit the ChordPro input and select an output format to see live conversion.
+
+```elixir
+input = Kino.Input.textarea("ChordPro input", default: default_input, monospace: true)
+
+format =
+  Kino.Input.select("Output format", [
+    {:text, "Plain text"},
+    {:chord_pro, "ChordPro"},
+    {:chords_over_words, "Chords over words"},
+    {:html_div, "HTML (div)"},
+    {:html_table, "HTML (table)"}
+  ], default: :html_div)
+
+form = Kino.Control.form([input: input, format: format], report_changes: true)
+output_frame = Kino.Frame.new()
+
+Kino.render(form)
+Kino.render(output_frame)
+
+convert = fn chord_pro, output_format ->
+  case Sonx.parse(:chord_pro, chord_pro) do
+    {:ok, song} ->
+      output = Sonx.format(output_format, song)
+
+      meta =
+        [
+          "Title: #{Sonx.title(song) || "(none)"}",
+          "Key: #{Sonx.key(song) || "(none)"}",
+          "Chords: #{Enum.join(Sonx.get_chords(song), ", ")}"
+        ]
+        |> Enum.join("\n")
+
+      meta_widget = Kino.Text.new(meta, terminal: true)
+
+      output_widget =
+        if output_format in [:html_div, :html_table] do
+          Kino.HTML.new(output)
+        else
+          Kino.Text.new(output, terminal: true)
+        end
+
+      Kino.Frame.render(output_frame, Kino.Layout.grid([meta_widget, output_widget], columns: 1))
+
+    {:error, reason} ->
+      Kino.Frame.render(output_frame, Kino.Text.new("Parse error: #{reason}", terminal: true))
+  end
+end
+
+convert.(default_input, :html_div)
+
+Kino.listen(form, fn %{data: %{input: chord_pro, format: output_format}} ->
+  convert.(chord_pro, output_format)
+end)
+```
+
+## Transposing
+
+Try changing the number of semitones:
+
+```elixir
+input_text = Kino.Input.read(input)
+{:ok, song} = Sonx.parse(:chord_pro, input_text)
+
+semitones = 3
+
+transposed = Sonx.transpose(song, semitones)
+
+IO.puts("New key: #{Sonx.key(transposed)}")
+IO.puts("New chords: #{Enum.join(Sonx.get_chords(transposed), ", ")}")
+IO.puts("")
+Sonx.format(:text, transposed) |> IO.puts()
+```
+
+## Changing key
+
+Try changing the target key:
+
+```elixir
+input_text = Kino.Input.read(input)
+{:ok, song} = Sonx.parse(:chord_pro, input_text)
+
+target_key = "D"
+
+changed = Sonx.change_key(song, target_key)
+
+IO.puts("Key: #{Sonx.key(changed)}")
+IO.puts("Chords: #{Enum.join(Sonx.get_chords(changed), ", ")}")
+IO.puts("")
+Sonx.format(:text, changed) |> IO.puts()
+```
+
+## Switching accidentals
+
+```elixir
+{:ok, sharp_song} = Sonx.parse(:chord_pro, "{key: C#}\n[C#]Hello [G#]world")
+
+flat_song = Sonx.use_accidental(sharp_song, :flat)
+
+IO.puts("Sharp: #{Enum.join(Sonx.get_chords(sharp_song), ", ")}")
+IO.puts("Flat:  #{Enum.join(Sonx.get_chords(flat_song), ", ")}")
+```
+
+## Parsing chords-over-words format
+
+```elixir
+cow_input = """
+       Am        C/G        F          C
+Let it be, let it be, let it be, let it be
+C                G              F  C/E Dm C
+Whisper words of wisdom, let it be
+"""
+
+{:ok, cow_song} = Sonx.parse(:chords_over_words, cow_input)
+Sonx.format(:text, cow_song) |> IO.puts()
+```
+
+## Serialization round-trip
+
+```elixir
+input_text = Kino.Input.read(input)
+{:ok, song} = Sonx.parse(:chord_pro, input_text)
+
+json = Sonx.to_json(song)
+IO.puts(json)
+```
+
+```elixir
+{:ok, restored} = Sonx.from_json(json)
+IO.puts("Title: #{Sonx.title(restored)}")
+Sonx.format(:text, restored) |> IO.puts()
+```

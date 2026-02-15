@@ -48,7 +48,7 @@ defmodule Sonx.MixProject do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md", "notebooks/demo.livemd", "CHANGELOG.md"],
+      extras: ["README.md", "notebooks/demo.livemd", "CHANGELOG.md", "LICENSE.md"],
       source_url: @source_url,
       source_ref: "v#{@version}",
       groups_for_modules: [
