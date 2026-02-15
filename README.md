@@ -96,4 +96,4 @@ See the `Sonx` module documentation for the full API reference.
 
 ## License
 
-MIT
+GPL-3.0-or-later. See [LICENSE.md](LICENSE.md).

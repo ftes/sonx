@@ -1,25 +1,10 @@
 defmodule Sonx do
   @moduledoc """
-  Elixir library for parsing and formatting chord sheets.
+  Main entry point for parsing and formatting chord sheets.
 
-  Sonx is an Elixir rewrite of [ChordSheetJS](https://github.com/martijnversluis/ChordSheetJS),
-  providing parsers and formatters for multiple chord sheet formats.
+  See the [README](README.md) for supported formats, installation, and usage examples.
 
-  ## Supported formats
-
-  **Input (parsers):**
-  - `:chord_pro` — ChordPro format with inline chords `[Am]lyrics` and directives `{title: ...}`
-  - `:chords_over_words` — Plain text with chords on one line, lyrics below
-  - `:ultimate_guitar` — Ultimate Guitar format with `[Verse]`/`[Chorus]` section markers
-
-  **Output (formatters):**
-  - `:text` — Plain text with chords aligned above lyrics
-  - `:chord_pro` — ChordPro format
-  - `:chords_over_words` — Chords-over-words with metadata header
-  - `:html_div` — HTML using flexbox `<div>` elements
-  - `:html_table` — HTML using `<table>` elements
-
-  ## Quick start
+  ## Examples
 
       iex> {:ok, song} = Sonx.parse(:chord_pro, "{title: My Song}\\n{key: C}\\n[Am]Hello [G]world")
       iex> Sonx.title(song)
@@ -29,8 +14,6 @@ defmodule Sonx do
       iex> Sonx.format(:text, song)
       "My Song\\n\\nAm    G\\nHello world"
 
-  ### Transposing and changing key
-
       iex> {:ok, song} = Sonx.parse(:chord_pro, "{key: C}\\n[Am]Hello [G]world")
       iex> transposed = Sonx.transpose(song, 3)
       iex> Sonx.get_chords(transposed)
@@ -38,8 +21,6 @@ defmodule Sonx do
       iex> changed = Sonx.change_key(song, "G")
       iex> Sonx.get_chords(changed)
       ["Em", "D"]
-
-  ### Serialization
 
       iex> {:ok, song} = Sonx.parse(:chord_pro, "{title: Test}\\n[Am]Hello")
       iex> json = Sonx.to_json(song)

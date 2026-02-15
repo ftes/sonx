@@ -1,10 +1,14 @@
 defmodule Sonx.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+  @source_url "https://github.com/ftes/sonx"
+
   def project do
     [
       app: :sonx,
-      version: "0.1.0",
+      name: "Sonx",
+      version: @version,
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -12,6 +16,8 @@ defmodule Sonx.MixProject do
       description: description(),
       package: package(),
       docs: docs(),
+      homepage_url: @source_url,
+      source_url: @source_url,
       dialyzer: [
         plt_local_path: "priv/plts/project.plt",
         plt_core_path: "priv/plts/core.plt",
@@ -30,16 +36,21 @@ defmodule Sonx.MixProject do
 
   defp package do
     [
-      licenses: ["MIT"],
-      links: %{}
+      licenses: ["GPL-3.0-or-later"],
+      links: %{
+        "GitHub" => @source_url,
+        "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md"
+      },
+      files: ~w(lib mix.exs README.md LICENSE.md CHANGELOG.md)
     ]
   end
 
   defp docs do
     [
       main: "readme",
-      extras: ["README.md"],
-      source_url: "https://github.com/ftes/sonx",
+      extras: ["README.md", "notebooks/demo.livemd", "CHANGELOG.md"],
+      source_url: @source_url,
+      source_ref: "v#{@version}",
       groups_for_modules: [
         "Public API": [Sonx, Sonx.Chord, Sonx.Key],
         "Chord Sheet IR": [~r/Sonx\.ChordSheet/],
