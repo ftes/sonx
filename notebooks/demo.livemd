@@ -32,8 +32,10 @@ format =
     {:text, "Plain text"},
     {:chord_pro, "ChordPro"},
     {:chords_over_words, "Chords over words"},
+    {:ultimate_guitar, "Ultimate Guitar"},
     {:html_div, "HTML (div)"},
-    {:html_table, "HTML (table)"}
+    {:html_table, "HTML (table)"},
+    {:latex_songs, "LaTeX (songs package)"}
   ], default: :html_div)
 
 form = Kino.Control.form([input: input, format: format], report_changes: true)
