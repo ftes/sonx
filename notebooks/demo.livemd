@@ -1,7 +1,7 @@
 # Sonx Demo
 
 ```elixir
-Mix.install([{:sonx, "~> 0.1.2"}, {:kino, "~> 0.14"}])
+Mix.install([{:sonx, "~> 0.1.3"}, {:kino, "~> 0.14"}])
 
 default_input = """
 {title: Let It Be}
