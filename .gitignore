@@ -24,3 +24,6 @@ sonx-*.tar
 
 # Dialyzer PLTs
 /priv/plts/
+
+# Hex metadata
+/.hex/

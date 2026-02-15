@@ -27,6 +27,8 @@ defmodule Sonx.Formatter.ChordsOverWordsFormatter do
     Ternary
   }
 
+  alias Sonx.Formatter.Html
+
   @meta_order ~w(title subtitle artist composer lyricist album year key tempo time capo duration)
 
   @impl true
@@ -45,20 +47,26 @@ defmodule Sonx.Formatter.ChordsOverWordsFormatter do
   # --- Header ---
 
   defp format_header(%Metadata{} = metadata) do
-    @meta_order
-    |> Enum.flat_map(fn key ->
-      case Metadata.get(metadata, key) do
-        nil ->
-          []
+    lines =
+      @meta_order
+      |> Enum.flat_map(fn key ->
+        case Metadata.get(metadata, key) do
+          nil ->
+            []
 
-        values when is_list(values) ->
-          [{key, Enum.join(values, ", ")}]
+          values when is_list(values) ->
+            [{key, Enum.join(values, ", ")}]
 
-        value ->
-          [{key, value}]
-      end
-    end)
-    |> Enum.map_join("\n", fn {key, value} -> "#{key}: #{value}" end)
+          value ->
+            [{key, value}]
+        end
+      end)
+      |> Enum.map(fn {key, value} -> "#{key}: #{value}" end)
+
+    case lines do
+      [] -> ""
+      _ -> Enum.join(["---" | lines] ++ ["---"], "\n")
+    end
   end
 
   # --- Paragraphs ---
@@ -106,16 +114,24 @@ defmodule Sonx.Formatter.ChordsOverWordsFormatter do
     |> Enum.join("\n")
   end
 
-  defp format_line_top(%Line{items: items} = line, metadata, opts) do
-    items
-    |> Enum.map(&format_item_top(&1, line, metadata, opts))
-    |> IO.iodata_to_binary()
+  defp format_line_top(%Line{} = line, metadata, opts) do
+    if Html.has_chord_contents?(line) do
+      line.items
+      |> Enum.map(&format_item_top(&1, line, metadata, opts))
+      |> IO.iodata_to_binary()
+    else
+      ""
+    end
   end
 
-  defp format_line_bottom(%Line{items: items} = line, metadata, opts) do
-    items
-    |> Enum.map(&format_item_bottom(&1, line, metadata, opts))
-    |> IO.iodata_to_binary()
+  defp format_line_bottom(%Line{} = line, metadata, opts) do
+    if has_text_contents?(line) do
+      line.items
+      |> Enum.map(&format_item_bottom(&1, line, metadata, opts))
+      |> IO.iodata_to_binary()
+    else
+      ""
+    end
   end
 
   # --- Item formatting (top = chords, bottom = lyrics) ---
@@ -194,5 +210,15 @@ defmodule Sonx.Formatter.ChordsOverWordsFormatter do
     else
       str
     end
+  end
+
+  defp has_text_contents?(%Line{items: items}) do
+    Enum.any?(items, fn
+      %ChordLyricsPair{lyrics: l} when is_binary(l) and l != "" -> true
+      %Tag{} = tag -> Tag.renderable?(tag)
+      %Ternary{} -> true
+      %Literal{} -> true
+      _ -> false
+    end)
   end
 end

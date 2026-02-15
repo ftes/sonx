@@ -202,8 +202,12 @@ defmodule Sonx.Parser.ChordsOverWordsParser do
   end
 
   defp chord_token?(token) do
-    Chord.parse(token) != nil
+    starts_like_chord?(token) and Chord.parse(token) != nil
   end
+
+  defp starts_like_chord?(<<c, _rest::binary>>) when c in ?A..?Z or c == ?# or c == ?(, do: true
+
+  defp starts_like_chord?(_), do: false
 
   # --- Chord/lyrics pairing ---
 

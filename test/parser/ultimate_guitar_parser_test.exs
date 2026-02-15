@@ -7,6 +7,7 @@ defmodule Sonx.Parser.UltimateGuitarParserTest do
     Tag
   }
 
+  alias Sonx.Formatter.ChordProFormatter
   alias Sonx.Parser.UltimateGuitarParser
 
   describe "basic parsing" do
@@ -45,76 +46,164 @@ defmodule Sonx.Parser.UltimateGuitarParserTest do
     end
   end
 
-  describe "section markers" do
-    test "parses [Verse] marker" do
-      input = "[Verse]\nC       G\nHello world"
-      {:ok, song} = UltimateGuitarParser.parse(input)
+  describe "section start and end tags" do
+    test "starts and ends a single verse tag correctly" do
+      {:ok, song} = UltimateGuitarParser.parse("[Verse 1]")
 
-      verse_lines = Enum.filter(song.lines, &(&1.type == :verse))
-      assert [_ | _] = verse_lines
+      assert_tag_on_line(song, 0, "start_of_verse", "Verse 1")
+      assert_tag_on_line(song, 1, "end_of_verse", "")
     end
 
-    test "parses [Chorus] marker" do
-      input = "[Chorus]\nAm      G\nLet it be"
+    test "parses a single verse correctly" do
+      input =
+        "[Verse 1]\nC     G        Am\nHello world    today\nC        G     F\nGoodbye moon   tonight"
+
       {:ok, song} = UltimateGuitarParser.parse(input)
 
-      chorus_lines = Enum.filter(song.lines, &(&1.type == :chorus))
-      assert [_ | _] = chorus_lines
+      assert_tag_on_line(song, 0, "start_of_verse", "Verse 1")
+      assert length(Enum.at(song.lines, 1).items) >= 2
+      assert length(Enum.at(song.lines, 2).items) >= 2
+      assert_tag_on_line(song, 3, "end_of_verse", "")
     end
 
-    test "parses [Bridge] marker" do
-      input = "[Bridge]\nDm      G\nSomething else"
+    test "parses verses and choruses case-insensitively" do
+      input =
+        "[VERSE 1]\nC     G        Am\nHello world    today\n[chorus]\nC        G     F\nGoodbye moon   tonight"
+
       {:ok, song} = UltimateGuitarParser.parse(input)
 
-      bridge_lines = Enum.filter(song.lines, &(&1.type == :bridge))
-      assert [_ | _] = bridge_lines
+      assert_tag_on_line(song, 0, "start_of_verse", "VERSE 1")
+      assert_tag_on_line(song, 2, "end_of_verse", "")
+      assert_tag_on_line(song, 3, "start_of_chorus", "chorus")
+      assert_tag_on_line(song, 5, "end_of_chorus", "")
     end
 
-    test "parses [Verse 1] marker with number" do
-      input = "[Verse 1]\nC       G\nHello world"
+    test "parses bridge sections" do
+      input = "[Bridge]\nF  C Dm\nSome bridge lyrics"
+
       {:ok, song} = UltimateGuitarParser.parse(input)
 
-      tag_line =
-        Enum.find(song.lines, fn line ->
-          Enum.any?(line.items, fn
-            %Tag{name: "start_of_verse"} -> true
-            _ -> false
-          end)
-        end)
-
-      assert tag_line != nil
+      assert_tag_on_line(song, 0, "start_of_bridge", "Bridge")
+      last_idx = length(song.lines) - 1
+      assert_tag_on_line(song, last_idx, "end_of_bridge", "")
     end
 
-    test "parses [Intro] as part section" do
-      input = "[Intro]\nAm  G  F  C"
+    test "parses bridge sections with number" do
+      {:ok, song} = UltimateGuitarParser.parse("[Bridge 2]")
+
+      assert_tag_on_line(song, 0, "start_of_bridge", "Bridge 2")
+      assert_tag_on_line(song, 1, "end_of_bridge", "")
+    end
+
+    test "parses intro sections as part" do
+      input = "[Intro]\nF  C Dm"
+
       {:ok, song} = UltimateGuitarParser.parse(input)
 
-      tag_line =
-        Enum.find(song.lines, fn line ->
-          Enum.any?(line.items, fn
-            %Tag{name: "start_of_part"} -> true
-            _ -> false
-          end)
-        end)
-
-      assert tag_line != nil
+      assert_tag_on_line(song, 0, "start_of_part", "Intro")
+      last_idx = length(song.lines) - 1
+      assert_tag_on_line(song, last_idx, "end_of_part", "")
     end
 
-    test "parses [Solo] as part section" do
-      input = "[Solo]\nAm  G  F  C"
+    test "parses outro sections as part" do
+      {:ok, song} = UltimateGuitarParser.parse("[Outro]")
+
+      assert_tag_on_line(song, 0, "start_of_part", "Outro")
+      assert_tag_on_line(song, 1, "end_of_part", "")
+    end
+
+    test "parses instrumental sections as part" do
+      input = "[Instrumental]\nF  C Dm"
+
       {:ok, song} = UltimateGuitarParser.parse(input)
 
-      tag_line =
-        Enum.find(song.lines, fn line ->
-          Enum.any?(line.items, fn
-            %Tag{name: "start_of_part"} -> true
-            _ -> false
-          end)
-        end)
-
-      assert tag_line != nil
+      assert_tag_on_line(song, 0, "start_of_part", "Instrumental")
+      last_idx = length(song.lines) - 1
+      assert_tag_on_line(song, last_idx, "end_of_part", "")
     end
 
+    test "parses interlude sections as part" do
+      {:ok, song} = UltimateGuitarParser.parse("[Interlude]")
+
+      assert_tag_on_line(song, 0, "start_of_part", "Interlude")
+      assert_tag_on_line(song, 1, "end_of_part", "")
+    end
+
+    test "parses solo sections as part" do
+      {:ok, song} = UltimateGuitarParser.parse("[Solo]")
+
+      assert_tag_on_line(song, 0, "start_of_part", "Solo")
+      assert_tag_on_line(song, 1, "end_of_part", "")
+    end
+
+    test "parses pre-chorus sections as part" do
+      {:ok, song} = UltimateGuitarParser.parse("[Pre-Chorus]")
+
+      assert_tag_on_line(song, 0, "start_of_part", "Pre-Chorus")
+      assert_tag_on_line(song, 1, "end_of_part", "")
+    end
+
+    test "parses section types case-insensitively" do
+      {:ok, song} = UltimateGuitarParser.parse("[BRIDGE]")
+
+      assert_tag_on_line(song, 0, "start_of_bridge", "BRIDGE")
+    end
+
+    test "adds truly unknown sections as comments" do
+      {:ok, song} = UltimateGuitarParser.parse("[Some Random Thing]")
+
+      line = Enum.at(song.lines, 0)
+      tag = Enum.find(line.items, &match?(%Tag{}, &1))
+      assert tag.name == "comment"
+      assert tag.value == "Some Random Thing"
+    end
+
+    test "ends section when new section starts without blank line" do
+      input = "[Verse]\nC G\nHello\n[Chorus]\nAm F\nWorld"
+      {:ok, song} = UltimateGuitarParser.parse(input)
+
+      tags = all_tags(song)
+      tag_names = Enum.map(tags, & &1.name)
+
+      assert "start_of_verse" in tag_names
+      assert "end_of_verse" in tag_names
+      assert "start_of_chorus" in tag_names
+      assert "end_of_chorus" in tag_names
+    end
+
+    test "ends section at blank line boundary" do
+      input = "[Verse]\nC G\nHello\n\n[Chorus]\nAm F\nWorld"
+      {:ok, song} = UltimateGuitarParser.parse(input)
+
+      tags = all_tags(song)
+      tag_names = Enum.map(tags, & &1.name)
+
+      assert "start_of_verse" in tag_names
+      assert "end_of_verse" in tag_names
+      assert "start_of_chorus" in tag_names
+      assert "end_of_chorus" in tag_names
+    end
+
+    test "parses consecutive chord lines without lyrics" do
+      input = "[Intro]\nD A Bm G\nD A Bm G"
+
+      {:ok, song} = UltimateGuitarParser.parse(input)
+
+      assert_tag_on_line(song, 0, "start_of_part", "Intro")
+
+      # Two chord lines
+      line1_pairs = all_pairs(Enum.at(song.lines, 1))
+      assert length(line1_pairs) == 4
+
+      line2_pairs = all_pairs(Enum.at(song.lines, 2))
+      assert length(line2_pairs) == 4
+
+      last_idx = length(song.lines) - 1
+      assert_tag_on_line(song, last_idx, "end_of_part", "")
+    end
+  end
+
+  describe "section markers (legacy)" do
     test "section marker sets section type for subsequent lines" do
       input = "[Verse]\nC       G\nHello world\n[Chorus]\nAm      F\nLet it be"
       {:ok, song} = UltimateGuitarParser.parse(input)
@@ -202,6 +291,43 @@ defmodule Sonx.Parser.UltimateGuitarParserTest do
       assert "Am" in chords
       assert "F" in chords
     end
+
+    test "parses full fixture and formats as ChordPro" do
+      fixture_path =
+        Path.join([
+          __DIR__,
+          "..",
+          "..",
+          "ChordSheetJS",
+          "test",
+          "fixtures",
+          "ultimate_guitar_chordsheet.txt"
+        ])
+
+      expected_path =
+        Path.join([
+          __DIR__,
+          "..",
+          "..",
+          "ChordSheetJS",
+          "test",
+          "fixtures",
+          "ultimate_guitar_chordsheet_expected_chordpro_format.txt"
+        ])
+
+      input = File.read!(fixture_path)
+
+      expected =
+        expected_path
+        |> File.read!()
+        |> String.replace("\r\n", "\n")
+        |> String.trim_trailing()
+
+      {:ok, song} = UltimateGuitarParser.parse(input)
+      result = song |> ChordProFormatter.format() |> String.trim_trailing()
+
+      assert normalize_blank_lines(result) == normalize_blank_lines(expected)
+    end
   end
 
   describe "parse!/2" do
@@ -225,5 +351,32 @@ defmodule Sonx.Parser.UltimateGuitarParserTest do
 
   defp all_pairs(line) do
     Enum.filter(line.items, &match?(%ChordLyricsPair{}, &1))
+  end
+
+  defp all_tags(song) do
+    Enum.flat_map(song.lines, fn line ->
+      Enum.filter(line.items, &match?(%Tag{}, &1))
+    end)
+  end
+
+  defp assert_tag_on_line(song, line_idx, expected_name, expected_value) do
+    line = Enum.at(song.lines, line_idx)
+    assert line != nil, "Expected line at index #{line_idx}, but song only has #{length(song.lines)} lines"
+
+    tag = Enum.find(line.items, &match?(%Tag{}, &1))
+    assert tag != nil, "Expected a tag on line #{line_idx}, got items: #{inspect(line.items)}"
+
+    assert tag.name == expected_name,
+           "Expected tag name #{inspect(expected_name)} on line #{line_idx}, got #{inspect(tag.name)}"
+
+    assert tag.value == expected_value,
+           "Expected tag value #{inspect(expected_value)} on line #{line_idx}, got #{inspect(tag.value)}"
+  end
+
+  defp normalize_blank_lines(str) do
+    str
+    |> String.split("\n")
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.join("\n")
   end
 end

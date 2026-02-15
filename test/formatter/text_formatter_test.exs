@@ -3,6 +3,7 @@ defmodule Sonx.Formatter.TextFormatterTest do
 
   alias Sonx.Formatter.TextFormatter
   alias Sonx.Parser.ChordProParser
+  alias Sonx.Parser.UltimateGuitarParser
 
   describe "basic formatting" do
     test "formats empty song" do
@@ -111,6 +112,19 @@ defmodule Sonx.Formatter.TextFormatterTest do
       {:ok, song} = ChordProParser.parse(input)
       result = TextFormatter.format(song)
       assert result =~ "Verse 1"
+    end
+  end
+
+  describe "ultimate guitar sections" do
+    test "renders section label only once" do
+      input = "[Verse]\n     Am        C/G        F          C\nLet it be, let it be, let it be, let it be"
+
+      {:ok, song} = UltimateGuitarParser.parse(input)
+      result = TextFormatter.format(song)
+
+      lines = String.split(result, "\n")
+      verse_lines = Enum.filter(lines, &(&1 == "Verse"))
+      assert length(verse_lines) == 1
     end
   end
 

@@ -51,7 +51,7 @@ defmodule Sonx.Parser.UltimateGuitarParser do
 
   defp do_parse(input) do
     lines = split_lines(input)
-    builder = process_lines(lines, SongBuilder.new())
+    builder = process_lines(lines, SongBuilder.new(), nil, true)
     SongBuilder.build(builder)
   end
 
@@ -64,39 +64,73 @@ defmodule Sonx.Parser.UltimateGuitarParser do
 
   @section_marker_regex ~r/^\[([^\]]+)\]\s*$/
 
-  @section_map %{
-    "verse" => "start_of_verse",
-    "chorus" => "start_of_chorus",
-    "bridge" => "start_of_bridge",
-    "tab" => "start_of_tab",
-    "intro" => "start_of_part",
-    "outro" => "start_of_part",
-    "pre-chorus" => "start_of_part",
-    "interlude" => "start_of_part",
-    "instrumental" => "start_of_part",
-    "solo" => "start_of_part"
+  @verse_regex ~r/^\[(Verse.*)\]$/i
+  @chorus_regex ~r/^\[(Chorus.*)\]$/i
+  @bridge_regex ~r/^\[(Bridge.*)\]$/i
+  @part_regex ~r/^\[((?:Intro|Outro|Instrumental|Interlude|Solo|Pre-Chorus)(?:\s+\d+)?)\]$/i
+
+  @section_end_tags %{
+    :verse => "end_of_verse",
+    :chorus => "end_of_chorus",
+    :bridge => "end_of_bridge",
+    :part => "end_of_part"
   }
 
-  defp process_lines([], builder), do: builder
+  @section_start_tags %{
+    :verse => "start_of_verse",
+    :chorus => "start_of_chorus",
+    :bridge => "start_of_bridge",
+    :part => "start_of_part"
+  }
 
-  defp process_lines([line | rest], builder) do
+  # section_type: nil | :verse | :chorus | :bridge | :part
+  # prev_empty?: whether the previous line was empty (starts true)
+
+  defp process_lines([], builder, section_type, _prev_empty?) do
+    # End of song: close any open section
+    end_section(builder, section_type)
+  end
+
+  defp process_lines([line | rest], builder, section_type, prev_empty?) do
     trimmed = String.trim(line)
 
     cond do
       trimmed == "" ->
-        process_lines(rest, SongBuilder.add_line(builder))
+        # End section on blank line if previous line was non-empty (JS isSectionEnd)
+        {builder, section_type} =
+          if prev_empty? do
+            {builder, section_type}
+          else
+            {end_section(builder, section_type), nil}
+          end
 
-      section_marker?(trimmed) ->
-        [_, section_name] = Regex.run(@section_marker_regex, trimmed)
-        tag_name = section_name_to_tag(section_name)
-        tag = Tag.new(tag_name, section_name)
+        builder = SongBuilder.add_line(builder)
+        process_lines(rest, builder, section_type, true)
+
+      (match = parse_section_directive(trimmed)) != nil ->
+        {section_kind, label} = match
+
+        # Close previous section if open
+        builder = end_section(builder, section_type)
 
         builder =
           builder
           |> SongBuilder.add_line()
-          |> SongBuilder.add_item(tag)
+          |> SongBuilder.add_item(Tag.new(@section_start_tags[section_kind], label))
 
-        process_lines(rest, builder)
+        process_lines(rest, builder, section_kind, false)
+
+      section_marker?(trimmed) ->
+        # Unknown section marker → comment (matches JS behavior)
+        [_, label] = Regex.run(@section_marker_regex, trimmed)
+        builder = end_section(builder, section_type)
+
+        builder =
+          builder
+          |> SongBuilder.add_line()
+          |> SongBuilder.add_item(Tag.new("comment", label))
+
+        process_lines(rest, builder, nil, false)
 
       chord_line?(line) ->
         {lyric_line, remaining} = pop_lyric_line(rest)
@@ -109,7 +143,7 @@ defmodule Sonx.Parser.UltimateGuitarParser do
             SongBuilder.add_item(b, pair)
           end)
 
-        process_lines(remaining, builder)
+        process_lines(remaining, builder, section_type, false)
 
       true ->
         # Plain lyrics line
@@ -118,7 +152,29 @@ defmodule Sonx.Parser.UltimateGuitarParser do
           |> SongBuilder.add_line()
           |> SongBuilder.add_item(ChordLyricsPair.new("", line))
 
-        process_lines(rest, builder)
+        process_lines(rest, builder, section_type, false)
+    end
+  end
+
+  # --- Section helpers ---
+
+  defp end_section(builder, nil), do: builder
+
+  defp end_section(builder, section_type) do
+    end_tag_name = Map.fetch!(@section_end_tags, section_type)
+
+    builder
+    |> SongBuilder.add_line()
+    |> SongBuilder.add_item(Tag.new(end_tag_name, ""))
+  end
+
+  defp parse_section_directive(trimmed) do
+    cond do
+      (m = Regex.run(@verse_regex, trimmed)) != nil -> {:verse, Enum.at(m, 1)}
+      (m = Regex.run(@chorus_regex, trimmed)) != nil -> {:chorus, Enum.at(m, 1)}
+      (m = Regex.run(@bridge_regex, trimmed)) != nil -> {:bridge, Enum.at(m, 1)}
+      (m = Regex.run(@part_regex, trimmed)) != nil -> {:part, Enum.at(m, 1)}
+      true -> nil
     end
   end
 
@@ -149,7 +205,16 @@ defmodule Sonx.Parser.UltimateGuitarParser do
     chord_count > 0 and chord_count / length(tokens) >= 0.5
   end
 
-  defp chord_token?(token), do: Chord.parse(token) != nil
+  defp chord_token?(token) do
+    # Require first character to be uppercase, # or ( to avoid false positives
+    # from lowercase words matching solfege/numeral prefixes
+    # (e.g. "dolor" → Do, "sit" → Si, "ipsum" → i). Matches JS CHORD_LINE_REGEX behavior.
+    starts_like_chord?(token) and Chord.parse(token) != nil
+  end
+
+  defp starts_like_chord?(<<c, _rest::binary>>) when c in ?A..?Z or c == ?# or c == ?(, do: true
+
+  defp starts_like_chord?(_), do: false
 
   # --- Pairing ---
 
@@ -213,11 +278,5 @@ defmodule Sonx.Parser.UltimateGuitarParser do
       start + length > str_len -> String.slice(str, start..-1//1)
       true -> String.slice(str, start, length)
     end
-  end
-
-  defp section_name_to_tag(name) do
-    lower = String.downcase(String.trim(name))
-    base = Regex.replace(~r/\s*\d+$/, lower, "")
-    Map.get(@section_map, base, "start_of_part")
   end
 end

@@ -23,6 +23,8 @@ defmodule Sonx.Formatter.TextFormatter do
     Ternary
   }
 
+  alias Sonx.Formatter.Html
+
   @impl true
   @spec format(Song.t(), keyword()) :: String.t()
   def format(%Song{} = song, opts \\ []) do
@@ -89,16 +91,24 @@ defmodule Sonx.Formatter.TextFormatter do
     |> Enum.join("\n")
   end
 
-  defp format_line_top(%Line{items: items} = line, metadata, opts) do
-    items
-    |> Enum.map(&format_item_top(&1, line, metadata, opts))
-    |> IO.iodata_to_binary()
+  defp format_line_top(%Line{} = line, metadata, opts) do
+    if Html.has_chord_contents?(line) do
+      line.items
+      |> Enum.map(&format_item_top(&1, line, metadata, opts))
+      |> IO.iodata_to_binary()
+    else
+      ""
+    end
   end
 
-  defp format_line_bottom(%Line{items: items} = line, metadata, opts) do
-    items
-    |> Enum.map(&format_item_bottom(&1, line, metadata, opts))
-    |> IO.iodata_to_binary()
+  defp format_line_bottom(%Line{} = line, metadata, opts) do
+    if has_text_contents?(line) do
+      line.items
+      |> Enum.map(&format_item_bottom(&1, line, metadata, opts))
+      |> IO.iodata_to_binary()
+    else
+      ""
+    end
   end
 
   # --- Item formatting (top = chords, bottom = lyrics) ---
@@ -171,5 +181,15 @@ defmodule Sonx.Formatter.TextFormatter do
     else
       str
     end
+  end
+
+  defp has_text_contents?(%Line{items: items}) do
+    Enum.any?(items, fn
+      %ChordLyricsPair{lyrics: l} when is_binary(l) and l != "" -> true
+      %Tag{} = tag -> Tag.renderable?(tag)
+      %Ternary{} -> true
+      %Literal{} -> true
+      _ -> false
+    end)
   end
 end
