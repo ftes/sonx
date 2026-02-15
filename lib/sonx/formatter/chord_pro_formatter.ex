@@ -51,6 +51,9 @@ defmodule Sonx.Formatter.ChordProFormatter do
         end
       end)
 
+    # Drop leading empty lines from content — combine_sections adds the separator
+    content = Enum.drop_while(content, &(&1.items == []))
+
     {meta, content}
   end
 
