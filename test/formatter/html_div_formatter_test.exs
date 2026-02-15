@@ -66,10 +66,10 @@ defmodule Sonx.Formatter.HtmlDivFormatterTest do
       assert result =~ "<div class=\"lyrics\">world</div>"
     end
 
-    test "formats empty chords without chord div" do
+    test "formats empty chords with empty chord div" do
       {:ok, song} = ChordProParser.parse("Just lyrics")
       result = HtmlDivFormatter.format(song)
-      refute result =~ "<div class=\"chord\"></div>"
+      assert result =~ "<div class=\"chord\"></div>"
       assert result =~ "<div class=\"lyrics\">Just lyrics</div>"
     end
   end
@@ -118,14 +118,14 @@ defmodule Sonx.Formatter.HtmlDivFormatterTest do
   end
 
   describe "ultimate guitar with indented chords" do
-    test "omits empty chord div for lyrics before first chord" do
+    test "renders empty chord div for lyrics before first chord" do
       input = "     Am        C/G        F          C\nLet it be, let it be, let it be, let it be"
 
       {:ok, song} = UltimateGuitarParser.parse(input)
       result = HtmlDivFormatter.format(song)
 
-      # The "Let i" column should not have an empty chord div
-      assert result =~ ~s(<div class="column"><div class="lyrics">Let i</div></div>)
+      # The "Let i" column should have an empty chord div to maintain vertical alignment
+      assert result =~ ~s(<div class="column"><div class="chord"></div><div class="lyrics">Let i</div></div>)
       # Actual chord columns should still have chord divs
       assert result =~ "<div class=\"chord\">Am</div>"
       assert result =~ "<div class=\"chord\">C/G</div>"

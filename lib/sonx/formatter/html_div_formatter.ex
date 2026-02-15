@@ -130,15 +130,10 @@ defmodule Sonx.Formatter.HtmlDivFormatter do
     chord_content = chord_or_annotation(pair, opts)
     lyrics = Html.escape(pair.lyrics || "")
 
-    chord_html =
-      if chord_content == "" do
-        ""
-      else
-        chord_class =
-          if pair.annotation && pair.annotation != "", do: css.annotation, else: css.chord
+    chord_class =
+      if pair.annotation && pair.annotation != "", do: css.annotation, else: css.chord
 
-        "<div class=\"#{chord_class}\">#{chord_content}</div>"
-      end
+    chord_html = "<div class=\"#{chord_class}\">#{chord_content}</div>"
 
     "<div class=\"#{css.column}\">" <>
       chord_html <>

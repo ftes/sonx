@@ -4,7 +4,7 @@ Elixir port of [ChordSheetJS](https://github.com/martijnversluis/ChordSheetJS) (
 
 ## Commands
 
-- `mix check` — runs compile (warnings-as-errors), test, credo --strict, dialyzer
+- `mix precommit` — runs compile (warnings-as-errors), test, credo --strict, dialyzer
 - `mix test` — 295 tests
 - `mix format` — uses Quokka plugin
 - `mix credo --strict` — zero issues expected

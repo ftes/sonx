@@ -1,7 +1,7 @@
 defmodule Sonx.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.1.1"
   @source_url "https://github.com/ftes/sonx"
 
   def project do
@@ -27,7 +27,7 @@ defmodule Sonx.MixProject do
   end
 
   def cli do
-    [preferred_envs: [check: :test]]
+    [preferred_envs: [precommit: :test]]
   end
 
   defp description do
@@ -67,7 +67,7 @@ defmodule Sonx.MixProject do
 
   defp aliases do
     [
-      check: [
+      precommit: [
         "compile --warnings-as-errors",
         "test",
         "credo --strict",
