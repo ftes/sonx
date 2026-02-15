@@ -293,27 +293,13 @@ defmodule Sonx.Parser.UltimateGuitarParserTest do
     end
 
     test "parses full fixture and formats as ChordPro" do
-      fixture_path =
-        Path.join([
-          __DIR__,
-          "..",
-          "..",
-          "ChordSheetJS",
-          "test",
-          "fixtures",
-          "ultimate_guitar_chordsheet.txt"
-        ])
+      fixture_path = Path.join(__DIR__, "../support/fixtures/ultimate_guitar/ultimate_guitar_chordsheet.txt")
 
       expected_path =
-        Path.join([
+        Path.join(
           __DIR__,
-          "..",
-          "..",
-          "ChordSheetJS",
-          "test",
-          "fixtures",
-          "ultimate_guitar_chordsheet_expected_chordpro_format.txt"
-        ])
+          "../support/fixtures/ultimate_guitar/ultimate_guitar_chordsheet_expected_chordpro_format.txt"
+        )
 
       input = File.read!(fixture_path)
 
