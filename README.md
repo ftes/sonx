@@ -3,6 +3,8 @@
 Elixir library for parsing and formatting chord sheets.
 An Elixir rewrite of [ChordSheetJS](https://github.com/martijnversluis/ChordSheetJS) (v14).
 
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fftes%2Fsonx%2Fblob%2Fmain%2Fnotebooks%2Fdemo.livemd)
+
 ## Supported formats
 
 **Input (parsers):**
@@ -96,4 +98,4 @@ See the `Sonx` module documentation for the full API reference.
 
 ## License
 
-GPL-3.0-or-later. See [LICENSE.md](LICENSE.md).
+GPL-3.0-or-later. See [LICENSE.md](https://github.com/ftes/sonx/blob/main/LICENSE.md).
