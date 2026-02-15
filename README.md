@@ -22,8 +22,10 @@ An Elixir rewrite of [ChordSheetJS](https://github.com/martijnversluis/ChordShee
 | Plain text | `:text` |
 | ChordPro | `:chord_pro` |
 | Chords over words | `:chords_over_words` |
+| Ultimate Guitar | `:ultimate_guitar` |
 | HTML (div-based) | `:html_div` |
 | HTML (table-based) | `:html_table` |
+| LaTeX ([songs](http://songs.sourceforge.net/) package) | `:latex_songs` |
 
 ## Installation
 

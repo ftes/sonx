@@ -5,7 +5,7 @@ Elixir port of [ChordSheetJS](https://github.com/martijnversluis/ChordSheetJS) (
 ## Commands
 
 - `mix precommit` — runs compile (warnings-as-errors), test, credo --strict, dialyzer
-- `mix test` — 295 tests
+- `mix test`
 - `mix format` — uses Quokka plugin
 - `mix credo --strict` — zero issues expected
 
@@ -25,7 +25,7 @@ All parsers produce a `Sonx.ChordSheet.Song` struct. All formatters consume one.
 - `Sonx.Chord` — chord (root key + bass key + suffix), delegates to Key for operations
 - `Sonx.Scales` — chromatic scale lookup tables (grade ↔ note mappings)
 - `Sonx.Parser.*` — `ChordProParser`, `ChordsOverWordsParser`, `UltimateGuitarParser`, `ChordParser`
-- `Sonx.Formatter.*` — `TextFormatter`, `ChordProFormatter`, `ChordsOverWordsFormatter`, `HtmlDivFormatter`, `HtmlTableFormatter`, `Html` (shared)
+- `Sonx.Formatter.*` — `TextFormatter`, `ChordProFormatter`, `ChordsOverWordsFormatter`, `UltimateGuitarFormatter`, `HtmlDivFormatter`, `HtmlTableFormatter`, `LatexSongsFormatter`, `Html` (shared)
 - `Sonx.SongBuilder` — builds Song structs during parsing
 - `Sonx.Serializer` — Song ↔ map/JSON
 - `Sonx.Renderable` — protocol for renderable items
@@ -68,6 +68,11 @@ The ChordSheetJS source is at `ChordSheetJS/` (git submodule). Key files for cro
 | `Tags` | `src/chord_sheet/tag.ts`, `data/sections.ts` |
 | `Song` | `src/chord_sheet/song.ts` |
 | `grade_to_note` | `src/utilities.ts` → `determineGrade` / `gradeToKey` |
+
+## Workflow
+
+- When adding features or making user-visible changes, update `CHANGELOG.md` (under `[Unreleased]`) and `README.md`
+- Keep `CLAUDE.md` in sync: module layout, any new conventions
 
 ## Known pitfalls when porting from JS
 

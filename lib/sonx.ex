@@ -37,7 +37,9 @@ defmodule Sonx do
     ChordsOverWordsFormatter,
     HtmlDivFormatter,
     HtmlTableFormatter,
-    TextFormatter
+    LatexSongsFormatter,
+    TextFormatter,
+    UltimateGuitarFormatter
   }
 
   alias Sonx.Key
@@ -51,7 +53,14 @@ defmodule Sonx do
   alias Sonx.Serializer
 
   @type parser_format() :: :chord_pro | :chords_over_words | :ultimate_guitar
-  @type formatter_format() :: :text | :chord_pro | :chords_over_words | :html_div | :html_table
+  @type formatter_format() ::
+          :text
+          | :chord_pro
+          | :chords_over_words
+          | :html_div
+          | :html_table
+          | :ultimate_guitar
+          | :latex_songs
 
   # --- Parsing ---
 
@@ -120,6 +129,8 @@ defmodule Sonx do
   def format(:chords_over_words, song, opts), do: ChordsOverWordsFormatter.format(song, opts)
   def format(:html_div, song, opts), do: HtmlDivFormatter.format(song, opts)
   def format(:html_table, song, opts), do: HtmlTableFormatter.format(song, opts)
+  def format(:ultimate_guitar, song, opts), do: UltimateGuitarFormatter.format(song, opts)
+  def format(:latex_songs, song, opts), do: LatexSongsFormatter.format(song, opts)
 
   # --- Chord Operations ---
 
