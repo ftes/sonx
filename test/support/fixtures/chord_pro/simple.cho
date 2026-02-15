@@ -1,0 +1,13 @@
+{title: Let It Be}
+{subtitle: Beatles}
+{artist: The Beatles}
+{key: C}
+
+{start_of_verse: label="Verse 1"}
+[C]When I find myself in [G]times of trouble
+[Am]Mother Mary [F]comes to me
+{end_of_verse}
+
+{start_of_chorus}
+[Am]Let it [G]be, let it [F]be, let it [C]be
+{end_of_chorus}

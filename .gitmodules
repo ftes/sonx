@@ -1,0 +1,3 @@
+[submodule "ChordSheetJS"]
+	path = ChordSheetJS
+	url = git@github.com:martijnversluis/ChordSheetJS.git
