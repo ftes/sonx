@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+### Added
+- Parser: Typst/conchord (`:typst`) — `[Chord] lyrics` inline syntax for the [conchord](https://typst.app/universe/package/conchord/) Typst package
+- Formatter: Typst/conchord (`:typst`) — generates Typst files with `chordify` show rule
+
 ## [0.1.3] 2026-02-15
 ### Added
 - `Html*Formatter.css_string/0` for default HTML formatter styles

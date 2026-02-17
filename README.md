@@ -14,6 +14,7 @@ An Elixir rewrite of [ChordSheetJS](https://github.com/martijnversluis/ChordShee
 | [ChordPro](https://www.chordpro.org/) | `:chord_pro` | `{title: My Song}\n[Am]Hello` |
 | Chords over words | `:chords_over_words` | `Am\nHello` |
 | Ultimate Guitar | `:ultimate_guitar` | `[Verse]\nAm\nHello` |
+| Typst/[conchord](https://typst.app/universe/package/conchord/) | `:typst` | `[Am] Hello [G] world` |
 
 **Output (formatters):**
 
@@ -26,6 +27,7 @@ An Elixir rewrite of [ChordSheetJS](https://github.com/martijnversluis/ChordShee
 | HTML (div-based) | `:html_div` |
 | HTML (table-based) | `:html_table` |
 | LaTeX ([songs](http://songs.sourceforge.net/) package) | `:latex_songs` |
+| Typst/[conchord](https://typst.app/universe/package/conchord/) | `:typst` |
 
 ## Installation
 

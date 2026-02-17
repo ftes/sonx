@@ -39,6 +39,7 @@ defmodule Sonx do
     HtmlTableFormatter,
     LatexSongsFormatter,
     TextFormatter,
+    TypstFormatter,
     UltimateGuitarFormatter
   }
 
@@ -47,12 +48,13 @@ defmodule Sonx do
   alias Sonx.Parser.{
     ChordProParser,
     ChordsOverWordsParser,
+    TypstParser,
     UltimateGuitarParser
   }
 
   alias Sonx.Serializer
 
-  @type parser_format() :: :chord_pro | :chords_over_words | :ultimate_guitar
+  @type parser_format() :: :chord_pro | :chords_over_words | :ultimate_guitar | :typst
   @type formatter_format() ::
           :text
           | :chord_pro
@@ -61,6 +63,7 @@ defmodule Sonx do
           | :html_table
           | :ultimate_guitar
           | :latex_songs
+          | :typst
 
   # --- Parsing ---
 
@@ -87,6 +90,7 @@ defmodule Sonx do
   def parse(:chord_pro, input, opts), do: ChordProParser.parse(input, opts)
   def parse(:chords_over_words, input, opts), do: ChordsOverWordsParser.parse(input, opts)
   def parse(:ultimate_guitar, input, opts), do: UltimateGuitarParser.parse(input, opts)
+  def parse(:typst, input, opts), do: TypstParser.parse(input, opts)
 
   @doc """
   Parses a chord sheet string, raising on error.
@@ -131,6 +135,7 @@ defmodule Sonx do
   def format(:html_table, song, opts), do: HtmlTableFormatter.format(song, opts)
   def format(:ultimate_guitar, song, opts), do: UltimateGuitarFormatter.format(song, opts)
   def format(:latex_songs, song, opts), do: LatexSongsFormatter.format(song, opts)
+  def format(:typst, song, opts), do: TypstFormatter.format(song, opts)
 
   # --- Chord Operations ---
 

@@ -24,8 +24,8 @@ All parsers produce a `Sonx.ChordSheet.Song` struct. All formatters consume one.
 - `Sonx.Key` — key representation, transposition, accidental handling, notation conversion
 - `Sonx.Chord` — chord (root key + bass key + suffix), delegates to Key for operations
 - `Sonx.Scales` — chromatic scale lookup tables (grade ↔ note mappings)
-- `Sonx.Parser.*` — `ChordProParser`, `ChordsOverWordsParser`, `UltimateGuitarParser`, `ChordParser`
-- `Sonx.Formatter.*` — `TextFormatter`, `ChordProFormatter`, `ChordsOverWordsFormatter`, `UltimateGuitarFormatter`, `HtmlDivFormatter`, `HtmlTableFormatter`, `LatexSongsFormatter`, `Html` (shared)
+- `Sonx.Parser.*` — `ChordProParser`, `ChordsOverWordsParser`, `UltimateGuitarParser`, `TypstParser`, `ChordParser`
+- `Sonx.Formatter.*` — `TextFormatter`, `ChordProFormatter`, `ChordsOverWordsFormatter`, `UltimateGuitarFormatter`, `HtmlDivFormatter`, `HtmlTableFormatter`, `LatexSongsFormatter`, `TypstFormatter`, `Html` (shared)
 - `Sonx.SongBuilder` — builds Song structs during parsing
 - `Sonx.Serializer` — Song ↔ map/JSON
 - `Sonx.Renderable` — protocol for renderable items
