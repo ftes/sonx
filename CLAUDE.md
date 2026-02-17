@@ -24,7 +24,7 @@ All parsers produce a `Sonx.ChordSheet.Song` struct. All formatters consume one.
 - `Sonx.Key` — key representation, transposition, accidental handling, notation conversion
 - `Sonx.Chord` — chord (root key + bass key + suffix), delegates to Key for operations
 - `Sonx.Scales` — chromatic scale lookup tables (grade ↔ note mappings)
-- `Sonx.Parser.*` — `ChordProParser`, `ChordsOverWordsParser`, `UltimateGuitarParser`, `TypstParser`, `ChordParser`
+- `Sonx.Parser.*` — `ChordProParser`, `ChordsOverWordsParser`, `UltimateGuitarParser`, `TypstParser`, `LatexSongsParser`, `ChordParser`
 - `Sonx.Formatter.*` — `TextFormatter`, `ChordProFormatter`, `ChordsOverWordsFormatter`, `UltimateGuitarFormatter`, `HtmlDivFormatter`, `HtmlTableFormatter`, `LatexSongsFormatter`, `TypstFormatter`, `Html` (shared)
 - `Sonx.SongBuilder` — builds Song structs during parsing
 - `Sonx.Serializer` — Song ↔ map/JSON
@@ -60,6 +60,7 @@ The ChordSheetJS source is at `ChordSheetJS/` (git submodule). Key files for cro
 | `ChordProParser` | `src/parser/chord_pro/grammar.pegjs` |
 | `ChordsOverWordsParser` | `src/parser/chords_over_words/grammar.pegjs` |
 | `UltimateGuitarParser` | `src/parser/ultimate_guitar_parser.ts` |
+| `LatexSongsParser` | _(no JS reference — original feature)_ |
 | `ChordParser` | `src/parser/chord/base_grammar.pegjs` |
 | `SongBuilder` | `src/song_builder.ts` |
 | `TextFormatter` | `src/formatter/text_formatter.ts` |

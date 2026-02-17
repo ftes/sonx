@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Added
+- Parser: LaTeX songs package (`:latex_songs`) — `\beginsong`/`\endsong` format for the [songs](http://songs.sourceforge.net/) LaTeX package
 - Parser: Typst/conchord (`:typst`) — `[Chord] lyrics` inline syntax for the [conchord](https://typst.app/universe/package/conchord/) Typst package
 - Formatter: Typst/conchord (`:typst`) — generates Typst files with `chordify` show rule
 

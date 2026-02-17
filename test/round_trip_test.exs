@@ -12,7 +12,8 @@ defmodule Sonx.RoundTripTest do
     {:chord_pro, "test/support/fixtures/chord_pro", "*.cho"},
     {:chords_over_words, "test/support/fixtures/chords_over_words", "*.txt"},
     {:ultimate_guitar, "test/support/fixtures/ultimate_guitar", "simple.txt"},
-    {:typst, "test/support/fixtures/typst", "*.typ"}
+    {:typst, "test/support/fixtures/typst", "*.typ"},
+    {:latex_songs, "test/support/fixtures/latex_songs", "*.tex"}
   ]
 
   # --- Same-format: input == format(parse(input)) ---
@@ -66,9 +67,10 @@ defmodule Sonx.RoundTripTest do
     |> normalize_chord_line_spacing()
     # Comment text with numbers like "Repeat Chorus 2" loses the number
     |> strip_comment_line_numbers()
-    # Blank line before section headers may be absent on first pass when
-    # a comment line (e.g. "Repeat Chorus") precedes a section
+    # Blank line before section headers or chord lines may be absent on first pass
+    # when a comment line (e.g. "Repeat Chorus") precedes them
     |> ensure_blank_line_before_sections()
+    |> ensure_blank_line_after_comments()
     # Lyrics starting with chord-like words (A-G) are ambiguous:
     # "A breath from God" re-parses as chords A + G over different lyrics
     |> normalize_ambiguous_chord_lyrics()
@@ -91,6 +93,15 @@ defmodule Sonx.RoundTripTest do
     # Comment lines (// text) are lossy: they disappear on re-parse through Typst
     # Metadata comments (// key:, // capo:, // tempo:) are preserved.
     |> strip_non_metadata_comments()
+  end
+
+  defp normalize(:latex_songs, str) do
+    str
+    |> normalize_whitespace()
+    # Meta tags (key, tempo, time, etc.) are suppressed by the formatter, leaving
+    # empty lines. Section labels and non-verse/chorus section types are also lost.
+    # Collapse resulting runs of blank lines.
+    |> String.replace(~r/\n{3,}/, "\n\n")
   end
 
   defp normalize(_format, str), do: normalize_whitespace(str)
@@ -213,6 +224,18 @@ defmodule Sonx.RoundTripTest do
       str,
       ~r/([^\n])\n((?:Verse|Chorus|Bridge|Intro|Outro)\b)/,
       "\\1\n\n\\2"
+    )
+  end
+
+  # Ensure blank line after comment-like text lines (e.g. "Repeat Chorus")
+  # when followed by a non-blank line. On first pass through CoW the comment
+  # and content may be adjacent; on second pass a paragraph break is inserted.
+  defp ensure_blank_line_after_comments(str) do
+    # "Repeat ..." lines not followed by a blank line get one inserted
+    String.replace(
+      str,
+      ~r/(^(?:Repeat|Instrumental)\b[^\n]*)\n(?!\n)/m,
+      "\\1\n\n"
     )
   end
 

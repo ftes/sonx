@@ -48,13 +48,14 @@ defmodule Sonx do
   alias Sonx.Parser.{
     ChordProParser,
     ChordsOverWordsParser,
+    LatexSongsParser,
     TypstParser,
     UltimateGuitarParser
   }
 
   alias Sonx.Serializer
 
-  @type parser_format() :: :chord_pro | :chords_over_words | :ultimate_guitar | :typst
+  @type parser_format() :: :chord_pro | :chords_over_words | :ultimate_guitar | :typst | :latex_songs
   @type formatter_format() ::
           :text
           | :chord_pro
@@ -91,6 +92,7 @@ defmodule Sonx do
   def parse(:chords_over_words, input, opts), do: ChordsOverWordsParser.parse(input, opts)
   def parse(:ultimate_guitar, input, opts), do: UltimateGuitarParser.parse(input, opts)
   def parse(:typst, input, opts), do: TypstParser.parse(input, opts)
+  def parse(:latex_songs, input, opts), do: LatexSongsParser.parse(input, opts)
 
   @doc """
   Parses a chord sheet string, raising on error.
