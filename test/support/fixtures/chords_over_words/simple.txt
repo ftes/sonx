@@ -3,6 +3,7 @@ title: Let It Be
 artist: The Beatles
 key: C
 ---
+
 Verse:
 C              G
 When I find myself in times of trouble
