@@ -3,6 +3,7 @@ defmodule Sonx.Formatter.LatexSongsFormatterTest do
 
   alias Sonx.Formatter.LatexSongsFormatter
   alias Sonx.Parser.ChordProParser
+  alias Sonx.Parser.TypstParser
 
   describe "basic formatting" do
     test "formats empty song" do
@@ -160,6 +161,68 @@ defmodule Sonx.Formatter.LatexSongsFormatterTest do
 
       # "My Song" should appear once (in \beginsong)
       assert occurrences == 2
+    end
+  end
+
+  describe "auto-closing sections" do
+    test "auto-closes verse when no explicit end tag" do
+      input = "{start_of_verse}\n[C]Hello\n{start_of_chorus}\n[Am]World\n{end_of_chorus}"
+      {:ok, song} = ChordProParser.parse(input)
+      result = LatexSongsFormatter.format(song)
+
+      assert result =~ "\\beginverse\n\\[C]Hello\n\\endverse\n\\beginchorus"
+    end
+
+    test "auto-closes section at end of song" do
+      input = "{start_of_verse}\n[C]Hello"
+      {:ok, song} = ChordProParser.parse(input)
+      result = LatexSongsFormatter.format(song)
+
+      assert result =~ "\\beginverse\n\\[C]Hello\n\\endverse\n\\endsong"
+    end
+
+    test "does not double-close when explicit end tag exists" do
+      input = "{start_of_verse}\n[C]Hello\n{end_of_verse}"
+      {:ok, song} = ChordProParser.parse(input)
+      result = LatexSongsFormatter.format(song)
+
+      count = result |> String.split("\\endverse") |> length()
+      # "\\endverse" appears exactly once → splits into 2 parts
+      assert count == 2
+    end
+
+    test "auto-closes chorus at end of song" do
+      input = "{start_of_chorus}\n[Am]Let it be"
+      {:ok, song} = ChordProParser.parse(input)
+      result = LatexSongsFormatter.format(song)
+
+      assert result =~ "\\beginchorus\n\\[Am]Let it be\n\\endchorus\n\\endsong"
+    end
+
+    test "works with typst-parsed input (no end tags)" do
+      input = """
+      = Let It Be
+
+      === Verse
+
+      [C] Hello [G] world
+
+      === Chorus
+
+      [Am] Let it [F] be
+      """
+
+      {:ok, song} = TypstParser.parse(input)
+      result = LatexSongsFormatter.format(song)
+
+      assert result =~ "\\beginverse"
+      assert result =~ "\\endverse"
+      assert result =~ "\\beginchorus"
+      assert result =~ "\\endchorus"
+      # endverse must come before beginchorus
+      endverse_pos = :binary.match(result, "\\endverse") |> elem(0)
+      beginchorus_pos = :binary.match(result, "\\beginchorus") |> elem(0)
+      assert endverse_pos < beginchorus_pos
     end
   end
 

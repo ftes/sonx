@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+### Fixed
+- Formatter: LaTeX songs — auto-close open sections (`\endverse`/`\endchorus`) before a new section or `\endsong`, fixing errors when input (e.g. from Typst parser) lacks explicit end-of-section tags
+
 ## [0.1.4] 2026-02-17
 ### Added
 - Parser: LaTeX songs package (`:latex_songs`) — `\beginsong`/`\endsong` format for the [songs](http://songs.sourceforge.net/) LaTeX package

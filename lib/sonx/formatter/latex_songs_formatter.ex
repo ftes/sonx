@@ -73,8 +73,59 @@ defmodule Sonx.Formatter.LatexSongsFormatter do
   # --- Body ---
 
   defp format_body(%Song{lines: lines}, metadata, opts) do
-    lines
-    |> Enum.map_join("\n", &format_line(&1, metadata, opts))
+    {formatted, open_section} =
+      Enum.reduce(lines, {[], nil}, fn line, {acc, open} ->
+        section_start = line_section_start(line)
+
+        acc =
+          if section_start && open do
+            [close_command(open) | acc]
+          else
+            acc
+          end
+
+        open =
+          cond do
+            section_start -> section_start
+            line_section_end?(line) -> nil
+            true -> open
+          end
+
+        {[format_line(line, metadata, opts) | acc], open}
+      end)
+
+    formatted =
+      if open_section do
+        [close_command(open_section) | formatted]
+      else
+        formatted
+      end
+
+    formatted
+    |> Enum.reverse()
+    |> Enum.join("\n")
+  end
+
+  defp line_section_start(%Line{items: [%Tag{name: name}]}) do
+    if Tags.section_start?(name), do: name
+  end
+
+  defp line_section_start(_), do: nil
+
+  defp line_section_end?(%Line{items: [%Tag{name: name}]}), do: Tags.section_end?(name)
+  defp line_section_end?(_), do: false
+
+  @close_commands %{
+    "start_of_verse" => "\\endverse",
+    "start_of_chorus" => "\\endchorus",
+    "start_of_bridge" => "\\endverse",
+    "start_of_tab" => "\\endverse",
+    "start_of_grid" => "\\endverse",
+    "start_of_part" => "\\endverse"
+  }
+
+  defp close_command(section_start_name) do
+    Map.get(@close_commands, section_start_name, "\\endverse")
   end
 
   defp format_line(%Line{items: items}, metadata, opts) do
