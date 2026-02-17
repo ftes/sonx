@@ -1,0 +1,25 @@
+---
+title: Edge Cases
+artist: Test Artist
+key: G
+---
+
+Verse
+G D
+A God
+Em
+Lyrics only on this line
+Am C D
+
+G  D/F# Em C
+Oh oh   oh oh
+G       D    Em      C
+Sing it out, sing it loud
+
+C           G/B              Am7     D7sus4
+Bridge with slash chords and seventh chords
+Cmaj7   Em7  Bm7     D
+More complex harmony here
+
+Instrumental
+G D Em C

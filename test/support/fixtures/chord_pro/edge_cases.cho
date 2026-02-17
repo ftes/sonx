@@ -1,0 +1,22 @@
+{title: Edge Cases}
+{artist: Test Artist}
+{key: G}
+
+{start_of_verse: Verse 1}
+[G]A breath from [D]God
+[Em]Lyrics only on this line
+[Am] [C] [D]
+{end_of_verse}
+
+{start_of_chorus}
+[G]Oh [D/F#]oh [Em]oh [C]oh
+[G]Sing it [D]out, [Em]sing it [C]loud
+{end_of_chorus}
+
+{start_of_bridge}
+[C]Bridge with [G/B]slash chords and [Am7]seventh [D7sus4]chords
+[Cmaj7]More com[Em7]plex [Bm7]harmony [D]here
+{end_of_bridge}
+
+{comment: Instrumental}
+[G] [D] [Em] [C]
