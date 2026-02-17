@@ -193,7 +193,7 @@ defmodule Sonx.Formatter.TypstFormatter do
     case {chord_part, lyrics} do
       {"", ""} -> ""
       {"", lyrics} -> lyrics
-      {chord, ""} -> chord
+      {chord, ""} -> chord <> " "
       {chord, lyrics} -> chord <> " " <> lyrics
     end
   end

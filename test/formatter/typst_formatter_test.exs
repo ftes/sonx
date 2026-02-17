@@ -85,10 +85,16 @@ defmodule Sonx.Formatter.TypstFormatterTest do
       assert result =~ "[Am] Hello [G] world"
     end
 
-    test "formats chord-only content" do
+    test "formats chord-only content with spaces between chords" do
       {:ok, song} = ChordProParser.parse("[F][C][Dm]")
       result = TypstFormatter.format(song)
-      assert result =~ "[F][C][Dm]"
+      assert result =~ "[F] [C] [Dm]"
+    end
+
+    test "formats trailing chords separated by spaces" do
+      {:ok, song} = ChordProParser.parse("[C]Whisper words of [G]wisdom, let it [F]be[C/E][Dm][C]")
+      result = TypstFormatter.format(song)
+      assert result =~ "[F] be[C/E] [Dm] [C]"
     end
 
     test "formats lyrics without chords" do
