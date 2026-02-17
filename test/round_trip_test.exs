@@ -11,12 +11,9 @@ defmodule Sonx.RoundTripTest do
   @formats [
     {:chord_pro, "test/support/fixtures/chord_pro", "*.cho"},
     {:chords_over_words, "test/support/fixtures/chords_over_words", "*.txt"},
+    {:ultimate_guitar, "test/support/fixtures/ultimate_guitar", "simple.txt"},
     {:typst, "test/support/fixtures/typst", "*.typ"}
   ]
-
-  # Also include parser-only formats as sources for cross-format tests
-  @source_formats @formats ++
-                    [{:ultimate_guitar, "test/support/fixtures/ultimate_guitar", "simple.txt"}]
 
   # --- Same-format: input == format(parse(input)) ---
 
@@ -35,7 +32,7 @@ defmodule Sonx.RoundTripTest do
 
   # --- Cross-format: format_b is idempotent after parse_a ---
 
-  for {source_format, dir, glob} <- @source_formats,
+  for {source_format, dir, glob} <- @formats,
       fixture <- Path.wildcard(Path.join(dir, glob)),
       {target_format, _, _} <- @formats,
       source_format != target_format do
