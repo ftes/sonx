@@ -116,6 +116,7 @@ defmodule Sonx do
   - `:normalize_chords` — Normalize chord formatting (default: false)
   - `:evaluate` — Evaluate ternary meta expressions (default: false)
   - `:css_classes` — Custom CSS class map (HTML formatters only)
+  - `:chord_diagrams` — Include guitar chord diagrams (LaTeX and Typst formatters only, default: false)
 
   ## Examples
 

@@ -56,7 +56,7 @@ defmodule Sonx.Formatter.TypstFormatter do
   def format(%Song{} = song, opts \\ []) do
     metadata = Song.metadata(song)
 
-    preamble = format_preamble()
+    preamble = format_preamble(opts)
     header = format_header(song)
     meta_comments = format_meta_comments(metadata)
     body = format_body(song, metadata, opts)
@@ -68,8 +68,20 @@ defmodule Sonx.Formatter.TypstFormatter do
 
   # --- Preamble ---
 
-  defp format_preamble do
-    "#import \"@preview/conchord:#{@conchord_version}\": chordify\n#show: chordify"
+  defp format_preamble(opts) do
+    chord_diagrams? = Keyword.get(opts, :chord_diagrams, false)
+
+    imports =
+      if chord_diagrams?,
+        do: "chordify, sized-chordlib",
+        else: "chordify"
+
+    preamble =
+      "#import \"@preview/conchord:#{@conchord_version}\": #{imports}\n#show: chordify"
+
+    if chord_diagrams?,
+      do: preamble <> "\n#context sized-chordlib(N: 4, width: 300pt)",
+      else: preamble
   end
 
   # --- Header ---

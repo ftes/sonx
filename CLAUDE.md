@@ -26,6 +26,7 @@ All parsers produce a `Sonx.ChordSheet.Song` struct. All formatters consume one.
 - `Sonx.Scales` — chromatic scale lookup tables (grade ↔ note mappings)
 - `Sonx.Parser.*` — `ChordProParser`, `ChordsOverWordsParser`, `UltimateGuitarParser`, `TypstParser`, `LatexSongsParser`, `ChordParser`
 - `Sonx.Formatter.*` — `TextFormatter`, `ChordProFormatter`, `ChordsOverWordsFormatter`, `UltimateGuitarFormatter`, `HtmlDivFormatter`, `HtmlTableFormatter`, `LatexSongsFormatter`, `TypstFormatter`, `Html` (shared)
+- `Sonx.ChordDiagrams` — guitar chord name → fret position lookup (used by LaTeX/Typst formatters with `:chord_diagrams` option)
 - `Sonx.SongBuilder` — builds Song structs during parsing
 - `Sonx.Serializer` — Song ↔ map/JSON
 - `Sonx.Renderable` — protocol for renderable items
@@ -38,7 +39,7 @@ All parsers produce a `Sonx.ChordSheet.Song` struct. All formatters consume one.
 - **Protocols** (`Renderable`, `Evaluatable`) for item polymorphism instead of JS duck typing
 - **Behaviours** (`Sonx.Parser`, `Sonx.Formatter`) as lightweight contracts
 - **`Key.accidental` is nullable** (`nil` = no accidental, matching JS `null`). Do NOT use `:natural` as a default — that was a bug we fixed. The `Scales.grade_to_note` fallback order is: `accidental → :natural → preferred_accidental → :sharp`
-- **Public option names** follow JS snake_cased: `:unicode_accidentals`, `:normalize_chords`, `:normalize_chord_suffix`, `:show_minor`, `:evaluate`, `:css_classes`
+- **Public option names** follow JS snake_cased: `:unicode_accidentals`, `:normalize_chords`, `:normalize_chord_suffix`, `:show_minor`, `:evaluate`, `:css_classes`, `:chord_diagrams`
 
 ## Conventions
 

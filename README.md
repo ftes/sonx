@@ -95,6 +95,18 @@ css = HtmlDivFormatter.css_string()
 
 `HtmlTableFormatter.css_string/1` works the same way.
 
+### Chord diagrams (LaTeX / Typst)
+
+The LaTeX and Typst formatters support opt-in guitar chord diagrams:
+
+```elixir
+# LaTeX: inserts \gtab{Chord}{Frets} commands
+Sonx.format(:latex_songs, song, chord_diagrams: true)
+
+# Typst: adds sized-chordlib import and call
+Sonx.format(:typst, song, chord_diagrams: true)
+```
+
 ### Serialization
 
 Songs can be serialized to JSON and back:

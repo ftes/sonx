@@ -226,6 +226,50 @@ defmodule Sonx.Formatter.LatexSongsFormatterTest do
     end
   end
 
+  describe "chord_diagrams option" do
+    test "inserts gtab lines between header and body" do
+      {:ok, song} = ChordProParser.parse("[Am]Hello [C]world")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{Am}{X02210}"
+      assert result =~ "\\gtab{C}{X32010}"
+
+      # gtab lines should appear before song body
+      [before_body, _] = String.split(result, "\\[Am]", parts: 2)
+      assert before_body =~ "\\gtab{Am}"
+      assert before_body =~ "\\gtab{C}"
+    end
+
+    test "handles slash chords with known voicings" do
+      {:ok, song} = ChordProParser.parse("[C/G]Hello")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{C/G}{332010}"
+    end
+
+    test "handles enharmonic equivalents" do
+      {:ok, song} = ChordProParser.parse("[Bb]Hello [F#m]world")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{Bb}{X13331}"
+      assert result =~ "\\gtab{F#m}{244222}"
+    end
+
+    test "skips chords not in database" do
+      {:ok, song} = ChordProParser.parse("[Cmaj9]Hello")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      refute result =~ "\\gtab"
+    end
+
+    test "does not include gtab by default" do
+      {:ok, song} = ChordProParser.parse("[Am]Hello")
+      result = LatexSongsFormatter.format(song)
+
+      refute result =~ "\\gtab"
+    end
+  end
+
   describe "fixture" do
     test "formats simple.cho fixture" do
       input = File.read!("test/support/fixtures/chord_pro/simple.cho")

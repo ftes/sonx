@@ -215,6 +215,23 @@ defmodule Sonx.Formatter.TypstFormatterTest do
     end
   end
 
+  describe "chord_diagrams option" do
+    test "adds sized-chordlib import and context call" do
+      {:ok, song} = ChordProParser.parse("[Am]Hello")
+      result = TypstFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ ~s(#import "@preview/conchord:0.4.0": chordify, sized-chordlib)
+      assert result =~ "#context sized-chordlib(N: 4, width: 300pt)"
+    end
+
+    test "does not include sized-chordlib by default" do
+      {:ok, song} = ChordProParser.parse("[Am]Hello")
+      result = TypstFormatter.format(song)
+
+      refute result =~ "sized-chordlib"
+    end
+  end
+
   describe "empty song" do
     test "formats empty song with just preamble" do
       {:ok, song} = ChordProParser.parse("")

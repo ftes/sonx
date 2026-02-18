@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+### Added
+- Formatter option `:chord_diagrams` — opt-in guitar chord diagrams for LaTeX (`\gtab`) and Typst (`sized-chordlib`) formatters
+- `Sonx.ChordDiagrams` module — chord name to fret position lookup for common guitar chords
+
 ## [0.1.5] 2026-02-18
 ### Fixed
 - Formatter: LaTeX songs — auto-close open sections (`\endverse`/`\endchorus`) before a new section or `\endsong`, fixing errors when input (e.g. from Typst parser) lacks explicit end-of-section tags

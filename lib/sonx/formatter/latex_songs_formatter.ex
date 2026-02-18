@@ -14,7 +14,7 @@ defmodule Sonx.Formatter.LatexSongsFormatter do
 
   @behaviour Sonx.Formatter
 
-  alias Sonx.{Chord, Evaluatable}
+  alias Sonx.{Chord, ChordDiagrams, Evaluatable}
 
   alias Sonx.ChordSheet.{
     ChordLyricsPair,
@@ -37,9 +37,10 @@ defmodule Sonx.Formatter.LatexSongsFormatter do
     metadata = Song.metadata(song)
 
     header = format_header(song)
+    chord_diagrams = format_chord_diagrams(song, opts)
     body = format_body(song, metadata, opts)
 
-    [header, body, "\\endsong"]
+    [header, chord_diagrams, body, "\\endsong"]
     |> Enum.reject(&(&1 == ""))
     |> Enum.join("\n")
   end
@@ -68,6 +69,20 @@ defmodule Sonx.Formatter.LatexSongsFormatter do
       end
 
     "\\beginsong{#{title_str}}[by={#{artist}}]"
+  end
+
+  # --- Chord diagrams ---
+
+  defp format_chord_diagrams(song, opts) do
+    if Keyword.get(opts, :chord_diagrams, false) do
+      song
+      |> Song.get_chords()
+      |> Enum.map(fn name -> {name, ChordDiagrams.lookup_frets(name)} end)
+      |> Enum.reject(fn {_name, frets} -> is_nil(frets) end)
+      |> Enum.map_join("\n", fn {name, frets} -> "\\gtab{#{name}}{#{frets}}" end)
+    else
+      ""
+    end
   end
 
   # --- Body ---
