@@ -251,8 +251,8 @@ defmodule Sonx.Formatter.LatexSongsFormatterTest do
       {:ok, song} = ChordProParser.parse("[Bb]Hello [F#m]world")
       result = LatexSongsFormatter.format(song, chord_diagrams: true)
 
-      assert result =~ "\\gtab{Bb}{X13331}"
-      assert result =~ "\\gtab{F#m}{244222}"
+      assert result =~ "\\gtab{Bb}{X(13331)}"
+      assert result =~ "\\gtab{F#m}{(244222)}"
     end
 
     test "skips chords not in database" do
@@ -260,6 +260,131 @@ defmodule Sonx.Formatter.LatexSongsFormatterTest do
       result = LatexSongsFormatter.format(song, chord_diagrams: true)
 
       refute result =~ "\\gtab"
+    end
+
+    test "barre notation for E-shape major barres" do
+      {:ok, song} = ChordProParser.parse("[F]1 [F#]2 [Ab]3")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{F}{(133211)}"
+      assert result =~ "\\gtab{F#}{(244322)}"
+      assert result =~ "\\gtab{Ab}{(466544)}"
+    end
+
+    test "barre notation for A-shape major barres" do
+      {:ok, song} = ChordProParser.parse("[Db]1 [Bb]2 [B]3")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{Db}{X(46664)}"
+      assert result =~ "\\gtab{Bb}{X(13331)}"
+      assert result =~ "\\gtab{B}{X(24442)}"
+    end
+
+    test "barre notation for Em-shape minor barres" do
+      {:ok, song} = ChordProParser.parse("[Fm]1 [F#m]2 [Gm]3 [Abm]4")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{Fm}{(133111)}"
+      assert result =~ "\\gtab{F#m}{(244222)}"
+      assert result =~ "\\gtab{Gm}{(355333)}"
+      assert result =~ "\\gtab{Abm}{(466444)}"
+    end
+
+    test "barre notation for Am-shape minor barres" do
+      {:ok, song} = ChordProParser.parse("[Cm]1 [C#m]2 [Bbm]3 [Bm]4")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{Cm}{X(35543)}"
+      assert result =~ "\\gtab{C#m}{X(46654)}"
+      assert result =~ "\\gtab{Bbm}{X(13321)}"
+      assert result =~ "\\gtab{Bm}{X(24432)}"
+    end
+
+    test "barre notation for dominant 7th barres" do
+      {:ok, song} = ChordProParser.parse("[F7]1 [F#7]2 [Ab7]3 [Db7]4 [Bb7]5")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      # E-shape dom7
+      assert result =~ "\\gtab{F7}{(131211)}"
+      assert result =~ "\\gtab{F#7}{(242322)}"
+      assert result =~ "\\gtab{Ab7}{(464544)}"
+      # A-shape dom7
+      assert result =~ "\\gtab{Db7}{X(46464)}"
+      assert result =~ "\\gtab{Bb7}{X(13131)}"
+    end
+
+    test "barre notation for minor 7th barres" do
+      {:ok, song} = ChordProParser.parse("[Fm7]1 [F#m7]2 [Gm7]3 [Cm7]4 [Bm7]5")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      # Em7-shape
+      assert result =~ "\\gtab{Fm7}{(131111)}"
+      assert result =~ "\\gtab{F#m7}{(242222)}"
+      assert result =~ "\\gtab{Gm7}{(353333)}"
+      # Am7-shape
+      assert result =~ "\\gtab{Cm7}{X(35343)}"
+      assert result =~ "\\gtab{Bm7}{X(24232)}"
+    end
+
+    test "no barre notation for open major chords" do
+      {:ok, song} = ChordProParser.parse("[C]1 [D]2 [E]3 [G]4 [A]5")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{C}{X32010}"
+      assert result =~ "\\gtab{D}{XX0232}"
+      assert result =~ "\\gtab{E}{022100}"
+      assert result =~ "\\gtab{G}{320003}"
+      assert result =~ "\\gtab{A}{X02220}"
+    end
+
+    test "no barre notation for open minor chords" do
+      {:ok, song} = ChordProParser.parse("[Dm]1 [Em]2 [Am]3")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{Dm}{XX0231}"
+      assert result =~ "\\gtab{Em}{022000}"
+      assert result =~ "\\gtab{Am}{X02210}"
+    end
+
+    test "no barre notation for open 7th chords" do
+      {:ok, song} = ChordProParser.parse("[C7]1 [D7]2 [E7]3 [G7]4 [A7]5 [B7]6")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{C7}{X32310}"
+      assert result =~ "\\gtab{D7}{XX0212}"
+      assert result =~ "\\gtab{E7}{020100}"
+      assert result =~ "\\gtab{G7}{320001}"
+      assert result =~ "\\gtab{A7}{X02020}"
+      assert result =~ "\\gtab{B7}{X21202}"
+    end
+
+    test "no barre notation for maj7, sus2, sus4 chords" do
+      {:ok, song} = ChordProParser.parse("[Cmaj7]1 [Dmaj7]2 [Gmaj7]3 [Dsus2]4 [Asus4]5")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{Cmaj7}{X32000}"
+      assert result =~ "\\gtab{Dmaj7}{XX0222}"
+      assert result =~ "\\gtab{Gmaj7}{320002}"
+      assert result =~ "\\gtab{Dsus2}{XX0230}"
+      assert result =~ "\\gtab{Asus4}{X02230}"
+    end
+
+    test "no barre notation for slash chords" do
+      {:ok, song} = ChordProParser.parse("[C/G]1 [C/E]2")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{C/G}{332010}"
+      assert result =~ "\\gtab{C/E}{032010}"
+    end
+
+    test "no barre notation for partial shape chords" do
+      {:ok, song} = ChordProParser.parse("[Eb]1 [Ebm]2 [Dm7]3 [Am7]4")
+      result = LatexSongsFormatter.format(song, chord_diagrams: true)
+
+      assert result =~ "\\gtab{Eb}{XX1343}"
+      assert result =~ "\\gtab{Ebm}{XX1342}"
+      assert result =~ "\\gtab{Dm7}{XX0211}"
+      assert result =~ "\\gtab{Am7}{X02010}"
     end
 
     test "does not include gtab by default" do

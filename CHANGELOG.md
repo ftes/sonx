@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - Formatter option `:chord_diagrams` now accepts a keyword list of formatter-specific options (e.g., `chord_diagrams: [n: 6]` for Typst `sized-chordlib`). `true` still works.
 - Typst formatter: `sized-chordlib` no longer hardcodes `width: 300pt` — omitted by default, letting conchord use its own default
+- LaTeX formatter: chord diagrams now use barre notation (parentheses) for barre chords like F, rendering a full bar line instead of individual dots
 
 ## [0.1.6] 2026-02-18
 ### Added

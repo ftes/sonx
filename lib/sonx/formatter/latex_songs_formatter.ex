@@ -79,11 +79,71 @@ defmodule Sonx.Formatter.LatexSongsFormatter do
       |> Song.get_chords()
       |> Enum.map(fn name -> {name, ChordDiagrams.lookup_frets(name)} end)
       |> Enum.reject(fn {_name, frets} -> is_nil(frets) end)
-      |> Enum.map_join("\n", fn {name, frets} -> "\\gtab{#{name}}{#{frets}}" end)
+      |> Enum.map_join("\n", fn {name, frets} -> "\\gtab{#{name}}{#{add_barre_notation(frets)}}" end)
     else
       ""
     end
   end
+
+  # --- Barre notation ---
+
+  # Wraps fret strings with parentheses for barre chords.
+  # E.g. "133211" → "(133211)", "X13331" → "X(13331)"
+  defp add_barre_notation(frets) do
+    indexed =
+      frets
+      |> String.graphemes()
+      |> Enum.with_index()
+      |> Enum.map(fn {ch, i} -> {parse_fret(ch), i} end)
+
+    case barre_range(indexed) do
+      nil ->
+        frets
+
+      {first, last} ->
+        {before, rest} = String.split_at(frets, first)
+        {middle, after_part} = String.split_at(rest, last - first + 1)
+        before <> "(" <> middle <> ")" <> after_part
+    end
+  end
+
+  defp barre_range(indexed) do
+    case min_nonzero_fret(indexed) do
+      nil -> nil
+      min -> barre_range(indexed, min)
+    end
+  end
+
+  defp barre_range(indexed, min) do
+    positions = for {f, i} <- indexed, f == min, do: i
+    first = List.first(positions)
+    last = List.last(positions)
+    span = last - first + 1
+
+    if span >= 4 and span > length(positions) and all_fretted_in_range?(indexed, min, first, last) do
+      {first, last}
+    end
+  end
+
+  defp min_nonzero_fret(indexed) do
+    indexed
+    |> Enum.reject(fn {f, _} -> is_nil(f) or f == 0 end)
+    |> Enum.min_by(fn {f, _} -> f end, fn -> nil end)
+    |> case do
+      nil -> nil
+      {min, _} -> min
+    end
+  end
+
+  defp all_fretted_in_range?(indexed, min, first, last) do
+    indexed
+    |> Enum.filter(fn {_, i} -> i >= first and i <= last end)
+    |> Enum.all?(fn {f, _} -> not is_nil(f) and f >= min end)
+  end
+
+  defp parse_fret("X"), do: nil
+  defp parse_fret("x"), do: nil
+  defp parse_fret(ch), do: String.to_integer(ch)
 
   # --- Body ---
 
