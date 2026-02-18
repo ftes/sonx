@@ -27,7 +27,6 @@ All parsers produce a `Sonx.ChordSheet.Song` struct. All formatters consume one.
 - `Sonx.Parser.*` — `ChordProParser`, `ChordsOverWordsParser`, `UltimateGuitarParser`, `TypstParser`, `LatexSongsParser`, `ChordParser`
 - `Sonx.Formatter.*` — `TextFormatter`, `ChordProFormatter`, `ChordsOverWordsFormatter`, `UltimateGuitarFormatter`, `HtmlDivFormatter`, `HtmlTableFormatter`, `LatexSongsFormatter`, `TypstFormatter`, `Html` (shared)
 - `Sonx.ChordDiagrams` — guitar chord name → fret position lookup (used by LaTeX/Typst formatters with `:chord_diagrams` option)
-- `Sonx.FormatterOptions` — NimbleOptions schema for `Sonx.format/3` options validation
 - `Sonx.SongBuilder` — builds Song structs during parsing
 - `Sonx.Serializer` — Song ↔ map/JSON
 - `Sonx.Renderable` — protocol for renderable items

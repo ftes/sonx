@@ -43,7 +43,6 @@ defmodule Sonx do
     UltimateGuitarFormatter
   }
 
-  alias Sonx.FormatterOptions
   alias Sonx.Key
 
   alias Sonx.Parser.{
@@ -55,6 +54,35 @@ defmodule Sonx do
   }
 
   alias Sonx.Serializer
+
+  @formatter_schema [
+    unicode_accidentals: [
+      type: :boolean,
+      default: false,
+      doc: "Use unicode accidentals (sharp/flat)"
+    ],
+    normalize_chords: [
+      type: :boolean,
+      default: false,
+      doc: "Normalize chord formatting"
+    ],
+    evaluate: [
+      type: :boolean,
+      default: false,
+      doc: "Evaluate ternary meta expressions"
+    ],
+    chord_diagrams: [
+      type: {:or, [:boolean, :keyword_list]},
+      default: false,
+      doc:
+        "Include guitar chord diagrams (`:latex_songs` and `:typst` formatters only). Pass `true` or a keyword list of formatter-specific options (e.g., `[n: 6]` for Typst)."
+    ],
+    css_classes: [
+      type: {:map, :atom, :string},
+      default: %{},
+      doc: "Custom CSS class map (HTML formatters)"
+    ]
+  ]
 
   @type parser_format() :: :chord_pro | :chords_over_words | :ultimate_guitar | :typst | :latex_songs
   @type formatter_format() ::
@@ -117,7 +145,8 @@ defmodule Sonx do
   - `:normalize_chords` — Normalize chord formatting (default: false)
   - `:evaluate` — Evaluate ternary meta expressions (default: false)
   - `:css_classes` — Custom CSS class map (HTML formatters only)
-  - `:chord_diagrams` — Include guitar chord diagrams (`:latex_songs` and `:typst` only; default: false)
+  - `:chord_diagrams` — Include guitar chord diagrams (`:latex_songs` and `:typst` only; default: false).
+    Pass `true` for defaults, or a keyword list of formatter-specific options (e.g., `[n: 6]` for Typst).
 
   ## Examples
 
@@ -131,7 +160,7 @@ defmodule Sonx do
   """
   @spec format(formatter_format(), Song.t(), keyword()) :: String.t()
   def format(format, song, opts \\ []) do
-    opts = FormatterOptions.validate!(opts)
+    opts = NimbleOptions.validate!(opts, @formatter_schema)
     do_format(format, song, opts)
   end
 

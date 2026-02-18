@@ -100,12 +100,18 @@ css = HtmlDivFormatter.css_string()
 The `:chord_diagrams` option enables guitar chord diagrams (opt-in, default `false`).
 Only supported by the `:latex_songs` and `:typst` formatters.
 
+Pass `true` for defaults, or a keyword list of formatter-specific options:
+
 ```elixir
 # LaTeX: inserts \gtab{Chord}{Frets} commands
 Sonx.format(:latex_songs, song, chord_diagrams: true)
 
-# Typst: adds sized-chordlib import and call
+# Typst: adds sized-chordlib import and call (default N: 4, full width)
 Sonx.format(:typst, song, chord_diagrams: true)
+
+# Typst: customize sized-chordlib parameters
+Sonx.format(:typst, song, chord_diagrams: [n: 6])
+Sonx.format(:typst, song, chord_diagrams: [n: 6, width: "400pt"])
 ```
 
 ### Serialization

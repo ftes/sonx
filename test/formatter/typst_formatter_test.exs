@@ -216,12 +216,13 @@ defmodule Sonx.Formatter.TypstFormatterTest do
   end
 
   describe "chord_diagrams option" do
-    test "adds sized-chordlib import and context call" do
+    test "adds sized-chordlib import and context call with defaults" do
       {:ok, song} = ChordProParser.parse("[Am]Hello")
       result = TypstFormatter.format(song, chord_diagrams: true)
 
       assert result =~ ~s(#import "@preview/conchord:0.4.0": chordify, sized-chordlib)
-      assert result =~ "#context sized-chordlib(N: 4, width: 300pt)"
+      assert result =~ "#context sized-chordlib(N: 4)"
+      refute result =~ "width"
     end
 
     test "does not include sized-chordlib by default" do
@@ -229,6 +230,29 @@ defmodule Sonx.Formatter.TypstFormatterTest do
       result = TypstFormatter.format(song)
 
       refute result =~ "sized-chordlib"
+    end
+
+    test "accepts custom N via keyword list" do
+      {:ok, song} = ChordProParser.parse("[Am]Hello")
+      result = TypstFormatter.format(song, chord_diagrams: [n: 6])
+
+      assert result =~ "#context sized-chordlib(N: 6)"
+      refute result =~ "width"
+    end
+
+    test "accepts custom N and width via keyword list" do
+      {:ok, song} = ChordProParser.parse("[Am]Hello")
+      result = TypstFormatter.format(song, chord_diagrams: [n: 6, width: "400pt"])
+
+      assert result =~ "#context sized-chordlib(N: 6, width: 400pt)"
+    end
+
+    test "raises on invalid diagram options" do
+      {:ok, song} = ChordProParser.parse("[Am]Hello")
+
+      assert_raise NimbleOptions.ValidationError, fn ->
+        TypstFormatter.format(song, chord_diagrams: [n: -1])
+      end
     end
   end
 

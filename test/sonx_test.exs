@@ -62,6 +62,14 @@ defmodule SonxTest do
       result = Sonx.format(:html_table, song)
       assert result =~ "<td class=\"chord\">Am</td>"
     end
+
+    test "chord_pro raises on chord_diagrams: true" do
+      {:ok, song} = Sonx.parse(:chord_pro, "[Am]Hello")
+
+      assert_raise ArgumentError, ~r/not supported by ChordProFormatter/, fn ->
+        Sonx.format(:chord_pro, song, chord_diagrams: true)
+      end
+    end
   end
 
   describe "chord operations" do

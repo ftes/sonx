@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+### Changed
+- Formatter option `:chord_diagrams` now accepts a keyword list of formatter-specific options (e.g., `chord_diagrams: [n: 6]` for Typst `sized-chordlib`). `true` still works.
+- Typst formatter: `sized-chordlib` no longer hardcodes `width: 300pt` — omitted by default, letting conchord use its own default
+
 ## [0.1.6] 2026-02-18
 ### Added
 - Formatter option `:chord_diagrams` — opt-in guitar chord diagrams for LaTeX (`\gtab`) and Typst (`sized-chordlib`) formatters

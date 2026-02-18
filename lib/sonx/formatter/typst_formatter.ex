@@ -38,6 +38,11 @@ defmodule Sonx.Formatter.TypstFormatter do
 
   @conchord_version "0.4.0"
 
+  @diagram_schema NimbleOptions.new!(
+                    n: [type: :pos_integer, default: 4, doc: "Number of chords per row (Typst `N`)"],
+                    width: [type: :string, doc: "Width of the chord library (e.g., \"400pt\")"]
+                  )
+
   @header_tags [Tags.title(), Tags.subtitle(), Tags.artist()]
 
   @meta_comment_tags ~w(key capo tempo time composer lyricist album year duration)
@@ -69,19 +74,28 @@ defmodule Sonx.Formatter.TypstFormatter do
   # --- Preamble ---
 
   defp format_preamble(opts) do
-    chord_diagrams? = Keyword.get(opts, :chord_diagrams, false)
+    case Keyword.get(opts, :chord_diagrams, false) do
+      false ->
+        "#import \"@preview/conchord:#{@conchord_version}\": chordify\n#show: chordify"
 
-    imports =
-      if chord_diagrams?,
-        do: "chordify, sized-chordlib",
-        else: "chordify"
+      diagram_opts ->
+        params = sized_chordlib_params(diagram_opts)
 
-    preamble =
-      "#import \"@preview/conchord:#{@conchord_version}\": #{imports}\n#show: chordify"
+        "#import \"@preview/conchord:#{@conchord_version}\": chordify, sized-chordlib\n" <>
+          "#show: chordify\n" <>
+          "#context sized-chordlib(#{params})"
+    end
+  end
 
-    if chord_diagrams?,
-      do: preamble <> "\n#context sized-chordlib(N: 4, width: 300pt)",
-      else: preamble
+  defp sized_chordlib_params(diagram_opts) do
+    diagram_opts = if is_list(diagram_opts), do: diagram_opts, else: []
+    diagram_opts = NimbleOptions.validate!(diagram_opts, @diagram_schema)
+
+    [{"N", diagram_opts[:n]}]
+    |> then(fn params ->
+      if width = diagram_opts[:width], do: params ++ [{"width", width}], else: params
+    end)
+    |> Enum.map_join(", ", fn {k, v} -> "#{k}: #{v}" end)
   end
 
   # --- Header ---
