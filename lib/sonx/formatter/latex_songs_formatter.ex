@@ -73,13 +73,18 @@ defmodule Sonx.Formatter.LatexSongsFormatter do
 
   # --- Chord diagrams ---
 
+  @doc "Generates \\\\gtab chord diagram lines for the given chord names."
+  @spec chord_diagrams([String.t()]) :: String.t()
+  def chord_diagrams(chord_names) do
+    chord_names
+    |> Enum.map(fn name -> {name, ChordDiagrams.lookup_frets(name)} end)
+    |> Enum.reject(fn {_name, frets} -> is_nil(frets) end)
+    |> Enum.map_join("\n", fn {name, frets} -> "\\gtab{#{name}}{#{add_barre_notation(frets)}}" end)
+  end
+
   defp format_chord_diagrams(song, opts) do
     if Keyword.get(opts, :chord_diagrams, false) do
-      song
-      |> Song.get_chords()
-      |> Enum.map(fn name -> {name, ChordDiagrams.lookup_frets(name)} end)
-      |> Enum.reject(fn {_name, frets} -> is_nil(frets) end)
-      |> Enum.map_join("\n", fn {name, frets} -> "\\gtab{#{name}}{#{add_barre_notation(frets)}}" end)
+      song |> Song.get_chords() |> chord_diagrams()
     else
       ""
     end

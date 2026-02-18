@@ -114,6 +114,21 @@ Sonx.format(:typst, song, chord_diagrams: [n: 6])
 Sonx.format(:typst, song, chord_diagrams: [n: 6, width: "400pt"])
 ```
 
+### Chord diagram markup (raw text injection)
+
+`Sonx.chord_diagrams/2` generates format-specific chord diagram markup
+for injection into raw text (e.g. passthrough mode):
+
+```elixir
+# LaTeX: generates \gtab lines from chord names (with barre notation)
+Sonx.chord_diagrams(:latex_songs, ["Am", "F", "C"])
+# => "\\gtab{Am}{X02210}\n\\gtab{F}{(133211)}\n\\gtab{C}{X32010}"
+
+# Typst: generates sized-chordlib preamble
+Sonx.chord_diagrams(:typst, n: 4, width: "310pt")
+# => "#import \"@preview/conchord:0.4.0\": sized-chordlib\n#context sized-chordlib(N: 4, width: 310pt)"
+```
+
 ### Serialization
 
 Songs can be serialized to JSON and back:

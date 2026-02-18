@@ -73,6 +73,15 @@ defmodule Sonx.Formatter.TypstFormatter do
 
   # --- Preamble ---
 
+  @doc "Generates Typst conchord sized-chordlib preamble."
+  @spec chord_diagrams(keyword()) :: String.t()
+  def chord_diagrams(opts \\ []) do
+    params = sized_chordlib_params(opts)
+
+    "#import \"@preview/conchord:#{@conchord_version}\": sized-chordlib\n" <>
+      "#context sized-chordlib(#{params})"
+  end
+
   defp format_preamble(opts) do
     case Keyword.get(opts, :chord_diagrams, false) do
       false ->

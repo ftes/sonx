@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+### Added
+- `Sonx.chord_diagrams/2` — generates format-specific chord diagram markup for injection into raw text (e.g. passthrough mode in sonx_book). Supports `:latex_songs` (list of chord names) and `:typst` (keyword options).
+
 ### Changed
 - Formatter option `:chord_diagrams` now accepts a keyword list of formatter-specific options (e.g., `chord_diagrams: [n: 6]` for Typst `sized-chordlib`). `true` still works.
 - Typst formatter: `sized-chordlib` no longer hardcodes `width: 300pt` — omitted by default, letting conchord use its own default

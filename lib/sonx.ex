@@ -220,6 +220,25 @@ defmodule Sonx do
   @spec use_accidental(Song.t(), Key.accidental()) :: Song.t()
   defdelegate use_accidental(song, accidental), to: Song
 
+  # --- Chord Diagrams ---
+
+  @doc """
+  Generates chord diagram markup for injection into raw format text.
+
+  For `:latex_songs`, pass a list of chord name strings. Returns `\\gtab` commands.
+  For `:typst`, pass keyword options (e.g. `[n: 4, width: "310pt"]`). Returns conchord import + sized-chordlib context.
+
+  ## Examples
+
+      iex> Sonx.chord_diagrams(:latex_songs, ["Am", "C"])
+      "\\\\gtab{Am}{X02210}\\n\\\\gtab{C}{X32010}"
+  """
+  @spec chord_diagrams(:latex_songs, [String.t()]) :: String.t()
+  @spec chord_diagrams(:typst, keyword()) :: String.t()
+  def chord_diagrams(:latex_songs, chord_names), do: LatexSongsFormatter.chord_diagrams(chord_names)
+
+  def chord_diagrams(:typst, opts), do: TypstFormatter.chord_diagrams(opts)
+
   # --- Metadata ---
 
   @doc "Returns the song's metadata."

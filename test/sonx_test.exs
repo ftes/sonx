@@ -135,6 +135,36 @@ defmodule SonxTest do
     end
   end
 
+  describe "chord_diagrams/2" do
+    test "latex: known chords produce correct \\gtab with barre notation" do
+      result = Sonx.chord_diagrams(:latex_songs, ["Am", "F", "C"])
+      assert result == "\\gtab{Am}{X02210}\n\\gtab{F}{(133211)}\n\\gtab{C}{X32010}"
+    end
+
+    test "latex: unknown chords are silently skipped" do
+      result = Sonx.chord_diagrams(:latex_songs, ["Am", "Xyzzy", "C"])
+      assert result == "\\gtab{Am}{X02210}\n\\gtab{C}{X32010}"
+    end
+
+    test "latex: empty list returns empty string" do
+      assert Sonx.chord_diagrams(:latex_songs, []) == ""
+    end
+
+    test "typst: default opts produce correct snippet" do
+      result = Sonx.chord_diagrams(:typst, [])
+
+      assert result ==
+               "#import \"@preview/conchord:0.4.0\": sized-chordlib\n#context sized-chordlib(N: 4)"
+    end
+
+    test "typst: custom n and width are included in params" do
+      result = Sonx.chord_diagrams(:typst, n: 6, width: "310pt")
+
+      assert result ==
+               "#import \"@preview/conchord:0.4.0\": sized-chordlib\n#context sized-chordlib(N: 6, width: 310pt)"
+    end
+  end
+
   describe "end-to-end workflow" do
     test "parse UG → transpose → format as ChordPro" do
       ug_input = "[Verse]\nC       G\nHello   world"
