@@ -79,6 +79,7 @@ defmodule Sonx.MixProject do
   defp deps do
     [
       {:nimble_parsec, "~> 1.4"},
+      {:nimble_options, "~> 1.1"},
       {:jason, "~> 1.4"},
       {:typedstruct, "~> 0.5"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},

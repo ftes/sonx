@@ -43,6 +43,7 @@ defmodule Sonx do
     UltimateGuitarFormatter
   }
 
+  alias Sonx.FormatterOptions
   alias Sonx.Key
 
   alias Sonx.Parser.{
@@ -116,7 +117,7 @@ defmodule Sonx do
   - `:normalize_chords` — Normalize chord formatting (default: false)
   - `:evaluate` — Evaluate ternary meta expressions (default: false)
   - `:css_classes` — Custom CSS class map (HTML formatters only)
-  - `:chord_diagrams` — Include guitar chord diagrams (LaTeX and Typst formatters only, default: false)
+  - `:chord_diagrams` — Include guitar chord diagrams (`:latex_songs` and `:typst` only; default: false)
 
   ## Examples
 
@@ -129,16 +130,19 @@ defmodule Sonx do
       "[Am]Hello"
   """
   @spec format(formatter_format(), Song.t(), keyword()) :: String.t()
-  def format(format, song, opts \\ [])
+  def format(format, song, opts \\ []) do
+    opts = FormatterOptions.validate!(opts)
+    do_format(format, song, opts)
+  end
 
-  def format(:text, song, opts), do: TextFormatter.format(song, opts)
-  def format(:chord_pro, song, opts), do: ChordProFormatter.format(song, opts)
-  def format(:chords_over_words, song, opts), do: ChordsOverWordsFormatter.format(song, opts)
-  def format(:html_div, song, opts), do: HtmlDivFormatter.format(song, opts)
-  def format(:html_table, song, opts), do: HtmlTableFormatter.format(song, opts)
-  def format(:ultimate_guitar, song, opts), do: UltimateGuitarFormatter.format(song, opts)
-  def format(:latex_songs, song, opts), do: LatexSongsFormatter.format(song, opts)
-  def format(:typst, song, opts), do: TypstFormatter.format(song, opts)
+  defp do_format(:text, song, opts), do: TextFormatter.format(song, opts)
+  defp do_format(:chord_pro, song, opts), do: ChordProFormatter.format(song, opts)
+  defp do_format(:chords_over_words, song, opts), do: ChordsOverWordsFormatter.format(song, opts)
+  defp do_format(:html_div, song, opts), do: HtmlDivFormatter.format(song, opts)
+  defp do_format(:html_table, song, opts), do: HtmlTableFormatter.format(song, opts)
+  defp do_format(:ultimate_guitar, song, opts), do: UltimateGuitarFormatter.format(song, opts)
+  defp do_format(:latex_songs, song, opts), do: LatexSongsFormatter.format(song, opts)
+  defp do_format(:typst, song, opts), do: TypstFormatter.format(song, opts)
 
   # --- Chord Operations ---
 

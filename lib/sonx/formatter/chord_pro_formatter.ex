@@ -29,6 +29,10 @@ defmodule Sonx.Formatter.ChordProFormatter do
   @impl true
   @spec format(Song.t(), keyword()) :: String.t()
   def format(%Song{} = song, opts \\ []) do
+    if Keyword.get(opts, :chord_diagrams, false) do
+      raise ArgumentError, ":chord_diagrams is not supported by ChordProFormatter"
+    end
+
     metadata = Song.metadata(song)
     {meta_lines, content_lines} = separate_metadata(song.lines)
 
