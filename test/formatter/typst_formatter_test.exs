@@ -85,16 +85,16 @@ defmodule Sonx.Formatter.TypstFormatterTest do
       assert result =~ "[Am] Hello [G] world"
     end
 
-    test "formats chord-only content with spaces between chords" do
+    test "concatenates chord-only pairs into single bracket" do
       {:ok, song} = ChordProParser.parse("[F][C][Dm]")
       result = TypstFormatter.format(song)
-      assert result =~ "[F] [C] [Dm]"
+      assert result =~ "[F C Dm]"
     end
 
-    test "formats trailing chords separated by spaces" do
+    test "concatenates trailing chords into single bracket" do
       {:ok, song} = ChordProParser.parse("[C]Whisper words of [G]wisdom, let it [F]be[C/E][Dm][C]")
       result = TypstFormatter.format(song)
-      assert result =~ "[F] be[C/E] [Dm] [C]"
+      assert result =~ "[F] be[C/E Dm C]"
     end
 
     test "formats lyrics without chords" do
@@ -253,6 +253,13 @@ defmodule Sonx.Formatter.TypstFormatterTest do
       assert_raise NimbleOptions.ValidationError, fn ->
         TypstFormatter.format(song, chord_diagrams: [n: -1])
       end
+    end
+
+    test "uses #h(2em) spacing instead of concatenation for chord-only pairs" do
+      {:ok, song} = ChordProParser.parse("[F][C][Dm]")
+      result = TypstFormatter.format(song, chord_diagrams: true)
+      assert result =~ "[F]#h(2em) [C]#h(2em) [Dm]#h(2em)"
+      refute result =~ "[F C Dm]"
     end
   end
 

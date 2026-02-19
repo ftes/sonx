@@ -213,39 +213,41 @@ defmodule Sonx.Formatter.TypstFormatter do
   # --- Lines ---
 
   defp format_line(%Line{} = line, metadata, opts) do
+    chord_diagrams? = Keyword.get(opts, :chord_diagrams, false) != false
+
     line.items
-    |> Enum.map(&format_item(&1, metadata, opts))
+    |> Enum.map(&prepare_item(&1, metadata, opts))
+    |> merge_chord_only_pairs(chord_diagrams?)
     |> IO.iodata_to_binary()
     |> String.trim_trailing()
   end
 
-  # --- Item formatting ---
-
-  defp format_item(%ChordLyricsPair{} = pair, _metadata, opts) do
+  # Returns {:chord_only, chord_str} | string for merging
+  defp prepare_item(%ChordLyricsPair{} = pair, _metadata, opts) do
     chord_part = format_chord(pair, opts)
     lyrics = escape(pair.lyrics || "")
 
     case {chord_part, lyrics} do
       {"", ""} -> ""
       {"", lyrics} -> lyrics
-      {chord, ""} -> chord <> " "
+      {_chord, ""} -> {:chord_only, chord_content(pair, opts)}
       {chord, lyrics} -> chord <> " " <> lyrics
     end
   end
 
-  defp format_item(%Tag{} = tag, _metadata, _opts) do
+  defp prepare_item(%Tag{} = tag, _metadata, _opts) do
     format_tag(tag)
   end
 
-  defp format_item(%Comment{content: content}, _metadata, _opts) do
+  defp prepare_item(%Comment{content: content}, _metadata, _opts) do
     "// #{content}"
   end
 
-  defp format_item(%SoftLineBreak{}, _metadata, _opts) do
+  defp prepare_item(%SoftLineBreak{}, _metadata, _opts) do
     " "
   end
 
-  defp format_item(%Ternary{} = ternary, metadata, opts) do
+  defp prepare_item(%Ternary{} = ternary, metadata, opts) do
     if Keyword.get(opts, :evaluate, false) do
       escape(Evaluatable.evaluate(ternary, metadata))
     else
@@ -253,7 +255,7 @@ defmodule Sonx.Formatter.TypstFormatter do
     end
   end
 
-  defp format_item(%Literal{} = literal, metadata, opts) do
+  defp prepare_item(%Literal{} = literal, metadata, opts) do
     if Keyword.get(opts, :evaluate, false) do
       escape(Evaluatable.evaluate(literal, metadata))
     else
@@ -261,30 +263,55 @@ defmodule Sonx.Formatter.TypstFormatter do
     end
   end
 
+  # Workaround: merge consecutive chord-only pairs into a single [A B C] bracket
+  # to avoid overlapping chord labels. See https://github.com/sitandr/conchord/issues/18
+  # When chord_diagrams is enabled, sized-chordlib can't parse concatenated names,
+  # so fall back to separate [A]#h(2em) [B]#h(2em) spacing instead.
+  defp merge_chord_only_pairs(items, chord_diagrams?) do
+    items
+    |> Enum.chunk_by(fn
+      {:chord_only, _} -> :chord
+      _ -> :other
+    end)
+    |> Enum.flat_map(fn
+      [{:chord_only, _} | _] = group when not chord_diagrams? ->
+        chords = Enum.map_join(group, " ", fn {:chord_only, c} -> c end)
+        ["[#{chords}]"]
+
+      [{:chord_only, _} | _] = group ->
+        Enum.map(group, fn {:chord_only, c} -> "[#{c}]#h(2em) " end)
+
+      other ->
+        other
+    end)
+  end
+
   # --- Chord formatting ---
+
+  # Returns the chord string without brackets (for concatenation into [A B C])
+  defp chord_content(%ChordLyricsPair{annotation: ann}, _opts) when is_binary(ann) and ann != "" do
+    ann
+  end
+
+  defp chord_content(%ChordLyricsPair{chords: chords}, opts) do
+    unicode_accidentals? = Keyword.get(opts, :unicode_accidentals, false)
+    normalize? = Keyword.get(opts, :normalize_chords, false)
+
+    if normalize? do
+      case Chord.parse(chords) do
+        nil -> chords
+        chord -> Chord.to_string(chord, unicode_accidentals: unicode_accidentals?)
+      end
+    else
+      chords
+    end
+  end
 
   defp format_chord(%ChordLyricsPair{chords: ""}, _opts), do: ""
   defp format_chord(%ChordLyricsPair{chords: nil}, _opts), do: ""
 
-  defp format_chord(%ChordLyricsPair{annotation: ann}, _opts) when is_binary(ann) and ann != "" do
-    "[#{ann}]"
-  end
-
-  defp format_chord(%ChordLyricsPair{chords: chords}, opts) do
-    unicode_accidentals? = Keyword.get(opts, :unicode_accidentals, false)
-    normalize? = Keyword.get(opts, :normalize_chords, false)
-
-    chord_str =
-      if normalize? do
-        case Chord.parse(chords) do
-          nil -> chords
-          chord -> Chord.to_string(chord, unicode_accidentals: unicode_accidentals?)
-        end
-      else
-        chords
-      end
-
-    "[#{chord_str}]"
+  defp format_chord(%ChordLyricsPair{} = pair, opts) do
+    "[#{chord_content(pair, opts)}]"
   end
 
   # --- Tag formatting ---

@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - Formatter option `:chord_diagrams` now accepts a keyword list of formatter-specific options (e.g., `chord_diagrams: [n: 6]` for Typst `sized-chordlib`). `true` still works.
 - Typst formatter: `sized-chordlib` no longer hardcodes `width: 300pt` — omitted by default, letting conchord use its own default
+- Typst formatter: consecutive chords without lyrics are now concatenated into a single bracket (`[F C Dm]`) instead of using `#h(2em)` spacing, per [conchord recommendation](https://github.com/sitandr/conchord/issues/18#issuecomment-3925155940). When `chord_diagrams` is enabled, falls back to `#h(2em)` spacing since `sized-chordlib` can't parse concatenated chord names.
+- Typst parser: strips inline `#h(...)` Typst function calls (spacing artifacts), splits multi-chord brackets (`[F C Dm]` → three separate chords), and skips `#context` preamble lines
 - LaTeX formatter: chord diagrams now use barre notation (parentheses) for barre chords like F, rendering a full bar line instead of individual dots
 
 ## [0.1.6] 2026-02-18

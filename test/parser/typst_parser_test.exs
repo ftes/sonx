@@ -31,6 +31,20 @@ defmodule Sonx.Parser.TypstParserTest do
       chords = Song.get_chords(song)
       assert chords == ["Am"]
     end
+
+    test "ignores #context lines" do
+      input = """
+      #import "@preview/conchord:0.4.0": chordify, sized-chordlib
+      #show: chordify
+      #context sized-chordlib(N: 4)
+
+      [Am] Hello
+      """
+
+      {:ok, song} = TypstParser.parse(input)
+      chords = Song.get_chords(song)
+      assert chords == ["Am"]
+    end
   end
 
   describe "headings" do
@@ -158,6 +172,23 @@ defmodule Sonx.Parser.TypstParserTest do
       chords = Song.get_chords(song)
       assert "C#m7" in chords
       assert "Bb/F" in chords
+    end
+
+    test "splits multi-chord bracket into separate pairs" do
+      {:ok, song} = TypstParser.parse("[F C Dm]")
+
+      chords = Song.get_chords(song)
+      assert chords == ["F", "C", "Dm"]
+    end
+
+    test "strips #h(2em) spacing between chords" do
+      {:ok, song} = TypstParser.parse("[F]#h(2em) [C]#h(2em) [Dm]#h(2em)")
+
+      chords = Song.get_chords(song)
+      assert chords == ["F", "C", "Dm"]
+
+      line = find_content_line(song)
+      assert Enum.all?(line.items, &(&1.lyrics == ""))
     end
 
     test "strips single leading space from lyrics after chord" do

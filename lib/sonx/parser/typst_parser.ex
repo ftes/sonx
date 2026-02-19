@@ -146,7 +146,8 @@ defmodule Sonx.Parser.TypstParser do
   defp preamble_line?(line) do
     String.starts_with?(line, "#import ") or
       String.starts_with?(line, "#show") or
-      String.starts_with?(line, "#set ")
+      String.starts_with?(line, "#set ") or
+      String.starts_with?(line, "#context ")
   end
 
   # --- Heading 2 logic ---
@@ -202,11 +203,15 @@ defmodule Sonx.Parser.TypstParser do
   @open_bracket_placeholder "\uFDD0"
   @close_bracket_placeholder "\uFDD1"
 
+  # Matches Typst function calls like #h(2em) used as spacing artifacts
+  @typst_func_regex ~r/#\w+\([^)]*\)\s*/
+
   defp parse_content_line(line) do
     # Replace escaped brackets with placeholders before chord detection
     line
     |> String.replace("[[", @open_bracket_placeholder)
     |> String.replace("]]", @close_bracket_placeholder)
+    |> String.replace(@typst_func_regex, "")
     |> split_on_chords()
     |> build_pairs()
   end
@@ -214,12 +219,20 @@ defmodule Sonx.Parser.TypstParser do
   defp split_on_chords(line) do
     parts = Regex.split(@chord_regex, line, include_captures: true)
 
-    Enum.map(parts, fn part ->
+    Enum.flat_map(parts, fn part ->
       case Regex.run(@chord_regex, part) do
-        [_, chord_name] -> {:chord, chord_name}
-        _ -> {:text, restore_brackets(part)}
+        [_, chord_name] -> expand_multi_chord(chord_name)
+        _ -> [{:text, restore_brackets(part)}]
       end
     end)
+  end
+
+  # Splits "[A B C]" style concatenated chords into separate chord segments
+  defp expand_multi_chord(chord_name) do
+    case String.split(chord_name) do
+      [_single] -> [{:chord, chord_name}]
+      multiple -> Enum.map(multiple, &{:chord, &1})
+    end
   end
 
   defp restore_brackets(str) do
