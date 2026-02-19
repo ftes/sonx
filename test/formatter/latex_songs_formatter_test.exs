@@ -107,7 +107,7 @@ defmodule Sonx.Formatter.LatexSongsFormatterTest do
       input = "{comment: This is a comment}"
       {:ok, song} = ChordProParser.parse(input)
       result = LatexSongsFormatter.format(song)
-      assert result =~ "\\textcomment{This is a comment}"
+      assert result =~ "\\textnote{This is a comment}"
     end
 
     test "formats capo tag" do

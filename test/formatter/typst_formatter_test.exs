@@ -205,7 +205,7 @@ defmodule Sonx.Formatter.TypstFormatterTest do
     test "respects normalize_chords option" do
       {:ok, song} = ChordProParser.parse("[C#]Hello")
       result = TypstFormatter.format(song, normalize_chords: true)
-      assert result =~ "[C#]"
+      assert result =~ "[C\\#]"
     end
 
     test "respects unicode_accidentals option" do

@@ -164,11 +164,22 @@ defmodule Sonx.Formatter.LatexSongsFormatter do
             acc
           end
 
-        open =
+        # Auto-wrap orphan content lines in \beginverse/\endverse.
+        # The songs package only defines \[chord], \textnote, etc. inside
+        # verse/chorus environments; outside them they cause LaTeX errors.
+        {acc, open} =
           cond do
-            section_start -> section_start
-            line_section_end?(line) -> nil
-            true -> open
+            section_start ->
+              {acc, section_start}
+
+            line_section_end?(line) ->
+              {acc, nil}
+
+            is_nil(open) and line_needs_section?(line) ->
+              {["\\beginverse" | acc], "start_of_verse"}
+
+            true ->
+              {acc, open}
           end
 
         {[format_line(line, metadata, opts) | acc], open}
@@ -194,6 +205,15 @@ defmodule Sonx.Formatter.LatexSongsFormatter do
 
   defp line_section_end?(%Line{items: [%Tag{name: name}]}), do: Tags.section_end?(name)
   defp line_section_end?(_), do: false
+
+  defp line_needs_section?(%Line{items: items}) do
+    Enum.any?(items, fn
+      %ChordLyricsPair{chords: c} when c not in [nil, ""] -> true
+      %Comment{} -> true
+      %Tag{name: "comment"} -> true
+      _ -> false
+    end)
+  end
 
   @close_commands %{
     "start_of_verse" => "\\endverse",
@@ -227,7 +247,7 @@ defmodule Sonx.Formatter.LatexSongsFormatter do
   end
 
   defp format_item(%Comment{content: content}, _metadata, _opts) do
-    "\\textcomment{#{escape(content)}}"
+    "\\textnote{#{escape(content)}}"
   end
 
   defp format_item(%SoftLineBreak{}, _metadata, _opts) do
@@ -278,20 +298,28 @@ defmodule Sonx.Formatter.LatexSongsFormatter do
     "start_of_verse" => "\\beginverse",
     "end_of_verse" => "\\endverse",
     "start_of_chorus" => "\\beginchorus",
-    "end_of_chorus" => "\\endchorus"
+    "end_of_chorus" => "\\endchorus",
+    "start_of_bridge" => "\\beginverse",
+    "end_of_bridge" => "\\endverse",
+    "start_of_tab" => "\\beginverse",
+    "end_of_tab" => "\\endverse",
+    "start_of_grid" => "\\beginverse",
+    "end_of_grid" => "\\endverse",
+    "start_of_part" => "\\beginverse",
+    "end_of_part" => "\\endverse"
   }
 
   defp format_tag(%Tag{name: name}) when name in @header_tags, do: ""
   defp format_tag(%Tag{name: name}) when is_map_key(@section_commands, name), do: @section_commands[name]
-  defp format_tag(%Tag{name: "comment", value: value}), do: "\\textcomment{#{escape(value)}}"
+  defp format_tag(%Tag{name: "comment", value: value}), do: "\\textnote{#{escape(value)}}"
   defp format_tag(%Tag{name: "capo", value: value}), do: "\\capo{#{escape(value)}}"
 
   defp format_tag(%Tag{name: name, value: value} = tag) do
     cond do
       Tags.section_start?(name) or Tags.section_end?(name) -> ""
       Tags.meta_tag?(name) -> ""
-      Tag.has_value?(tag) -> "\\textcomment{#{escape(name)}: #{escape(value)}}"
-      true -> "\\textcomment{#{escape(name)}}"
+      Tag.has_value?(tag) -> "\\textnote{#{escape(name)}: #{escape(value)}}"
+      true -> "\\textnote{#{escape(name)}}"
     end
   end
 

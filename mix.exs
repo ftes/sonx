@@ -27,7 +27,7 @@ defmodule Sonx.MixProject do
   end
 
   def cli do
-    [preferred_envs: [precommit: :test]]
+    [preferred_envs: [precommit: :test, "test.integration": :test]]
   end
 
   defp description do
@@ -72,7 +72,8 @@ defmodule Sonx.MixProject do
         "test",
         "credo --strict",
         "dialyzer"
-      ]
+      ],
+      "test.integration": ["test --only integration --warnings-as-errors"]
     ]
   end
 

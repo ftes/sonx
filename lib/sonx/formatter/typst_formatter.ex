@@ -290,21 +290,24 @@ defmodule Sonx.Formatter.TypstFormatter do
 
   # Returns the chord string without brackets (for concatenation into [A B C])
   defp chord_content(%ChordLyricsPair{annotation: ann}, _opts) when is_binary(ann) and ann != "" do
-    ann
+    escape_chord(ann)
   end
 
   defp chord_content(%ChordLyricsPair{chords: chords}, opts) do
     unicode_accidentals? = Keyword.get(opts, :unicode_accidentals, false)
     normalize? = Keyword.get(opts, :normalize_chords, false)
 
-    if normalize? do
-      case Chord.parse(chords) do
-        nil -> chords
-        chord -> Chord.to_string(chord, unicode_accidentals: unicode_accidentals?)
+    chord_str =
+      if normalize? do
+        case Chord.parse(chords) do
+          nil -> chords
+          chord -> Chord.to_string(chord, unicode_accidentals: unicode_accidentals?)
+        end
+      else
+        chords
       end
-    else
-      chords
-    end
+
+    escape_chord(chord_str)
   end
 
   defp format_chord(%ChordLyricsPair{chords: ""}, _opts), do: ""
@@ -344,6 +347,11 @@ defmodule Sonx.Formatter.TypstFormatter do
   end
 
   # --- Escaping ---
+
+  # Escape sharp signs inside chord brackets so Typst doesn't interpret # as code.
+  defp escape_chord(str) when is_binary(str) do
+    String.replace(str, "#", "\\#")
+  end
 
   defp escape(str) when is_binary(str) do
     String.replace(str, ~r/[\[\]]/, fn

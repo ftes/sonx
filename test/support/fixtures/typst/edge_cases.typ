@@ -14,7 +14,7 @@
 
 === Chorus
 
-[G] Oh [D/F#] oh [Em] oh [C] oh \
+[G] Oh [D/F\#] oh [Em] oh [C] oh \
 [G] Sing it [D] out, [Em] sing it [C] loud
 
 === Bridge
