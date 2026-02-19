@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 - Typst formatter: escape `#` as `\#` inside chord brackets so sharp chords like `[D/F#]` no longer break Typst compilation
+- LaTeX songs formatter: use `\textnote` instead of `\textcomment` (which doesn't exist in the songs package)
+- LaTeX songs formatter: map bridge/tab/grid/part sections to `\beginverse`/`\endverse`
+- LaTeX songs formatter: auto-wrap orphan chord lines in `\beginverse`/`\endverse` so `\[chord]` isn't misinterpreted as LaTeX display math
 
 ### Changed
 - Formatter option `:chord_diagrams` now accepts a keyword list of formatter-specific options (e.g., `chord_diagrams: [n: 6]` for Typst `sized-chordlib`). `true` still works.

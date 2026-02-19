@@ -80,7 +80,20 @@ jobs:
         uses: zauguin/install-texlive@v4
         with:
           packages: latex latex-bin songs collection-fontsrecommended
+      - name: Cache ChordPro
+        id: chordpro_cache
+        uses: actions/cache@v4
+        with:
+          key: chordpro-${{ runner.os }}-v1
+          path: ~/perl5
       - name: Install ChordPro
-        run: sudo apt-get update && sudo apt-get install -y cpanminus libharfbuzz-dev && sudo cpanm --notest App::Music::ChordPro
+        if: steps.chordpro_cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update && sudo apt-get install -y cpanminus libharfbuzz-dev
+          cpanm --local-lib ~/perl5 --notest App::Music::ChordPro
+      - name: Setup ChordPro PATH
+        run: |
+          echo "$HOME/perl5/bin" >> $GITHUB_PATH
+          echo "PERL5LIB=$HOME/perl5/lib/perl5" >> $GITHUB_ENV
       - name: Run integration tests
         run: mix test.integration
