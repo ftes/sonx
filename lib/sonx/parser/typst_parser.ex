@@ -221,7 +221,7 @@ defmodule Sonx.Parser.TypstParser do
 
     Enum.flat_map(parts, fn part ->
       case Regex.run(@chord_regex, part) do
-        [_, chord_name] -> expand_multi_chord(chord_name)
+        [_, chord_name] -> expand_multi_chord(unescape_chord(chord_name))
         _ -> [{:text, restore_brackets(part)}]
       end
     end)
@@ -239,6 +239,11 @@ defmodule Sonx.Parser.TypstParser do
     str
     |> String.replace(@open_bracket_placeholder, "[")
     |> String.replace(@close_bracket_placeholder, "]")
+  end
+
+  # Unescape \# back to # inside chord names (formatter escapes # for Typst)
+  defp unescape_chord(str) do
+    String.replace(str, "\\#", "#")
   end
 
   defp build_pairs(segments) do
