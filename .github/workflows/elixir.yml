@@ -81,13 +81,11 @@ jobs:
         with:
           packages: latex latex-bin songs collection-fontsrecommended
       - name: Cache ChordPro
-        id: chordpro_cache
         uses: actions/cache@v4
         with:
-          key: chordpro-${{ runner.os }}-v1
+          key: chordpro-${{ runner.os }}-v2
           path: ~/perl5
       - name: Install ChordPro
-        if: steps.chordpro_cache.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update && sudo apt-get install -y cpanminus libharfbuzz-dev
           cpanm --local-lib ~/perl5 --notest App::Music::ChordPro
