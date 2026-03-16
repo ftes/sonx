@@ -242,6 +242,37 @@ defmodule Sonx.Parser.UltimateGuitarParserTest do
       assert first.chords == ""
       assert first.lyrics =~ "Oh yes"
     end
+
+    test "does not reinterpret lyric words as chords" do
+      input = "F C\nEin endlos weites Feld"
+      {:ok, song} = UltimateGuitarParser.parse(input)
+      line = find_content_line(song)
+      pairs = all_pairs(line)
+
+      assert Enum.map(pairs, & &1.chords) == ["F", "C"]
+      assert Enum.join(Enum.map(pairs, & &1.lyrics), "") == "Ein endlos weites Feld"
+      assert Sonx.format(:ultimate_guitar, song) == input
+    end
+
+    test "preserves trailing repeat notation on chord lines" do
+      input = "Am G x2\nSing it"
+      {:ok, song} = UltimateGuitarParser.parse(input)
+      line = find_content_line(song)
+      pairs = all_pairs(line)
+
+      assert Enum.map(pairs, & &1.chords) == ["Am", "G"]
+      assert List.last(pairs).lyrics =~ "x2"
+    end
+
+    test "accepts no-chord tokens as chord lines" do
+      input = "N.C.\nSpoken intro"
+      {:ok, song} = UltimateGuitarParser.parse(input)
+      line = find_content_line(song)
+      [pair] = all_pairs(line)
+
+      assert pair.chords == "N.C."
+      assert pair.lyrics == "Spoken intro"
+    end
   end
 
   describe "empty lines and structure" do

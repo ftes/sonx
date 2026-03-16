@@ -83,6 +83,14 @@ defmodule Sonx.Parser.UltimateGuitarParser do
     :part => "start_of_part"
   }
 
+  @repeat_notation_regex ~r/^x\d+$/i
+  @no_chord_tokens MapSet.new(["N.C.", "NC"])
+  @strict_suffix_regex ~r/^(?:(?:m(?![a-zA-Z])|maj|min|dim|aug|sus2|sus4|sus|add|dom)?[0-9+#b()\-oΔ]*)*$/
+  @symbol_root_regex ~r/^[A-G](?:#|b)?/
+  @solfege_root_regex ~r/^(?:Do|Re|Mi|Fa|Sol|La|Si)(?:#|b)?/
+  @numeral_root_regex ~r/^[#b]?(?:III|VII|II|IV|VI|I|V)/
+  @numeric_root_regex ~r/^[#b]?[1-7]/
+
   # section_type: nil | :verse | :chorus | :bridge | :part
   # prev_empty?: whether the previous line was empty (starts true)
 
@@ -200,36 +208,94 @@ defmodule Sonx.Parser.UltimateGuitarParser do
   end
 
   defp do_chord_line_check(trimmed) do
-    tokens = String.split(trimmed)
-    chord_count = Enum.count(tokens, &chord_token?/1)
-    chord_count > 0 and chord_count / length(tokens) >= 0.5
+    {content, _repeat_notation} = split_repeat_notation(trimmed)
+    tokens = String.split(content)
+
+    tokens != [] and
+      Enum.all?(tokens, &chord_token?/1) and
+      Enum.any?(tokens, &musical_token?/1)
   end
 
   defp chord_token?(token) do
-    # Require first character to be uppercase, # or ( to avoid false positives
-    # from lowercase words matching solfege/numeral prefixes
-    # (e.g. "dolor" → Do, "sit" → Si, "ipsum" → i). Matches JS CHORD_LINE_REGEX behavior.
-    starts_like_chord?(token) and Chord.parse(token) != nil
+    no_chord_token?(token) or
+      (strict_chord_token?(token) and Chord.parse(token) != nil)
   end
 
-  defp starts_like_chord?(<<c, _rest::binary>>) when c in ?A..?Z or c == ?# or c == ?(, do: true
+  defp musical_token?(token), do: chord_token?(token)
 
-  defp starts_like_chord?(_), do: false
+  defp no_chord_token?(token), do: MapSet.member?(@no_chord_tokens, token)
+
+  defp strict_chord_token?(token) do
+    stripped = strip_optional_parens(token)
+
+    case String.split(stripped, "/", parts: 2) do
+      [main] ->
+        note_with_suffix?(main)
+
+      [main, bass] ->
+        note_with_suffix?(main) and note_root?(bass)
+
+      _other ->
+        false
+    end
+  end
+
+  defp strip_optional_parens("(" <> rest) do
+    if String.ends_with?(rest, ")") do
+      String.slice(rest, 0, String.length(rest) - 1)
+    else
+      "(" <> rest
+    end
+  end
+
+  defp strip_optional_parens(token), do: token
+
+  defp note_with_suffix?(token) do
+    Enum.any?(
+      [@symbol_root_regex, @solfege_root_regex, @numeral_root_regex, @numeric_root_regex],
+      fn root_regex ->
+        case Regex.run(root_regex, token) do
+          [root] ->
+            suffix = String.replace_prefix(token, root, "")
+            Regex.match?(@strict_suffix_regex, suffix)
+
+          _ ->
+            false
+        end
+      end
+    )
+  end
+
+  defp note_root?(token) do
+    Enum.any?(
+      [@symbol_root_regex, @solfege_root_regex, @numeral_root_regex, @numeric_root_regex],
+      fn root_regex ->
+        Regex.match?(root_regex, token) and Regex.run(root_regex, token) == [token]
+      end
+    )
+  end
 
   # --- Pairing ---
 
   defp pair_chords_and_lyrics(chord_line, nil) do
-    extract_chord_positions(chord_line)
+    {content, repeat_notation} = split_repeat_notation(chord_line)
+
+    content
+    |> extract_chord_positions()
     |> Enum.map(fn {chord, _pos} -> ChordLyricsPair.new(chord, "") end)
+    |> append_repeat_notation(repeat_notation)
   end
 
   defp pair_chords_and_lyrics(chord_line, lyric_line) do
-    chord_positions = extract_chord_positions(chord_line)
+    {content, repeat_notation} = split_repeat_notation(chord_line)
+    chord_positions = extract_chord_positions(content)
 
     if chord_positions == [] do
       [ChordLyricsPair.new("", lyric_line)]
     else
-      build_pairs_from_positions(chord_positions, lyric_line)
+      chord_positions
+      |> build_pairs_from_positions(lyric_line)
+      |> append_repeat_notation(repeat_notation)
     end
   end
 
@@ -240,6 +306,37 @@ defmodule Sonx.Parser.UltimateGuitarParser do
     |> Enum.flat_map(fn [{pos, len}] ->
       token = String.slice(line, pos, len)
       if chord_token?(token), do: [{token, pos}], else: []
+    end)
+  end
+
+  defp split_repeat_notation(trimmed) do
+    tokens = String.split(trimmed)
+
+    case Enum.split(tokens, length(tokens) - 1) do
+      {[], _last} ->
+        {trimmed, nil}
+
+      {prefix, [last]} ->
+        if Regex.match?(@repeat_notation_regex, last) do
+          {Enum.join(prefix, " "), last}
+        else
+          {trimmed, nil}
+        end
+    end
+  end
+
+  defp append_repeat_notation([], nil), do: []
+  defp append_repeat_notation([], repeat_notation), do: [ChordLyricsPair.new("", repeat_notation)]
+  defp append_repeat_notation(pairs, nil), do: pairs
+
+  defp append_repeat_notation(pairs, repeat_notation) do
+    List.update_at(pairs, -1, fn pair ->
+      lyrics =
+        [pair.lyrics, repeat_notation]
+        |> Enum.reject(&(&1 in [nil, ""]))
+        |> Enum.join(" ")
+
+      %{pair | lyrics: lyrics}
     end)
   end
 

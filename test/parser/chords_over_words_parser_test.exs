@@ -162,6 +162,37 @@ defmodule Sonx.Parser.ChordsOverWordsParserTest do
       # Should not crash; later chords get empty lyrics
       assert [_, _ | _] = pairs
     end
+
+    test "does not reinterpret lyric words as chords" do
+      input = "F C\nEin endlos weites Feld"
+      {:ok, song} = ChordsOverWordsParser.parse(input)
+      line = find_content_line(song)
+      pairs = all_pairs(line)
+
+      assert Enum.map(pairs, & &1.chords) == ["F", "C"]
+      assert Enum.join(Enum.map(pairs, & &1.lyrics), "") == "Ein endlos weites Feld"
+      assert Sonx.format(:chords_over_words, song) == input
+    end
+
+    test "preserves trailing repeat notation on chord lines" do
+      input = "Am G x2\nSing it"
+      {:ok, song} = ChordsOverWordsParser.parse(input)
+      line = find_content_line(song)
+      pairs = all_pairs(line)
+
+      assert Enum.map(pairs, & &1.chords) == ["Am", "G"]
+      assert List.last(pairs).lyrics =~ "x2"
+    end
+
+    test "accepts no-chord tokens as chord lines" do
+      input = "N.C.\nSpoken intro"
+      {:ok, song} = ChordsOverWordsParser.parse(input)
+      line = find_content_line(song)
+      [pair] = all_pairs(line)
+
+      assert pair.chords == "N.C."
+      assert pair.lyrics == "Spoken intro"
+    end
   end
 
   describe "embedded directives" do
